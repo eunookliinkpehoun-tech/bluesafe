@@ -1,0 +1,35 @@
+{
+  "summary": "Frontend-only testing of Tirelire USDT piggy bank Expo app at mobile viewport 390x844. Verified onboarding (Welcome -> Create -> Verify quiz -> PIN -> Setup -> Activate), Import flow, Demo mode (dashboard, action sheets, plus menu, tabs home/history/team, sub-accounts), language switch EN/FR/AR with RTL layout flip, and no 'Invalid style property direction' crash. Found 2 real bugs: (A) PIN lock bypass on reload for any non-root route (critical security issue), (B) 'Maximum update depth exceeded' React render loop triggered during demo-mode drawer/language interactions (ErrorBoundary catches it, user can be left on a crashed screen). Also an intermittent 'drawer requires 2 clicks' issue likely caused by the same render loop. All testIDs listed in the request were found and clickable when drawer did open.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "RouteGuard (app/_layout.tsx or app/index.tsx)", "issue": "PIN lock does not protect non-root routes. After creating a wallet, directly navigating to or reloading /activate, /(tabs), /subaccounts, /setup, etc. renders the screen without ever requiring the user to enter their PIN. Only visiting '/' (splash) routes to /pin?mode=unlock. A global route guard that redirects to /pin?mode=unlock whenever status==='locked' is missing.", "testID": "pin-screen-unlock", "priority": "CRITICAL"},
+      {"component": "Drawer / Dashboard infinite re-render", "issue": "In demo mode, opening the drawer and interacting with it (switching language, clicking lang-ar, or exit-demo) sometimes triggers a React 'Maximum update depth exceeded' error that the ErrorBoundary catches. Repro: enter demo -> open plus menu -> open deposit sheet -> close -> open drawer -> switch to AR -> exit demo. Error logged: 'Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate.' Likely a useEffect dependency loop in Drawer or app/_layout Shell triggered by isRTL change.", "testID": "accounts-drawer", "priority": "HIGH"},
+      {"component": "Drawer (profile-avatar-button)", "issue": "The drawer intermittently fails to open on the first tap of profile-avatar-button right after a previous overlay was dismissed. A second tap opens it reliably. Suspected toggle-state desync between OverlayHost backdrop press and the open callback.", "testID": "profile-avatar-button", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Lock/Unlock on reload", "issue": "Expected: reload page -> pin-screen-unlock. Observed: reload stays on current deep-link route (/activate, /(tabs), etc.) with no PIN prompt. Only reaching '/' triggers the splash's locked->pin redirect in app/index.tsx line 41.", "affected_testIDs": ["pin-screen-unlock", "pin-forgot-button"]}
+    ],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_1.json"],
+  "action_items": [
+    "Add a global route guard in app/_layout.tsx (Shell) that watches `status` from useApp() and router.replace('/pin?mode=unlock') whenever status==='locked' and the current route is not /pin. Mirror the splash logic so deep-link reloads cannot bypass PIN.",
+    "Diagnose 'Maximum update depth exceeded' in demo-mode drawer. Likely candidates: a useEffect in app/_layout.tsx Shell depending on isRTL that calls setLang/setStatus; or Drawer's language setter triggering parent re-render that re-mounts Drawer. Audit useApp()/useI18n() consumers for setState calls inside render or effects without proper deps.",
+    "Fix the two-click drawer open: ensure OverlayHost onClose is not toggling the drawer-open state right after the avatar press. Add a small delay or guard against simultaneous open+close.",
+    "Minor: deprecation warnings 'shadow* style props are deprecated. Use boxShadow' and 'props.pointerEvents is deprecated. Use style.pointerEvents' — migrate to boxShadow / style.pointerEvents to future-proof against RN upgrades."
+  ],
+  "critical_code_review_comments": [
+    "app/index.tsx is the only place performing a locked->/pin redirect; this logic should live in a global guard inside Shell so it applies on any deep-link entry.",
+    "src/state/app.tsx exposes `lock()` but no `useEffect` in any screen enforces that `status==='locked'` sends the user to /pin. Deep links slip past the splash.",
+    "Deposit/transfer/withdraw/plus/drawer sheets use OverlayHost — ensure open/close callbacks are stable (useCallback) to avoid identity-churn re-renders that may feed the setState loop observed."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "80%"},
+  "seed_data_creation": "None required (demo mode uses built-in mock data).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All testIDs documented in the request exist in the code and work when their screen is actually rendered. Key reproducible flows verified: Welcome lang EN/FR/AR, Create (reveal, confirm, quiz w/ 3 positions, pin create + mismatch), Setup (invalid referral disables continue), Activate (price 50, QR, 42-char address, submit disabled), Import (invalid disables continue, 'test test... junk' valid), Demo dashboard $20,790.00, plus menu, tabs. The two bugs to retest after main agent fixes: (1) reload /activate while wallet exists must land on pin-screen-unlock, (2) demo-mode drawer + lang-ar must not throw Max update depth. For (1) a working check is: create wallet, go through to /activate, then page.reload() -> pin-screen-unlock must be visible.",
+  "rca_of_issue": "Bug A (PIN bypass): app/index.tsx:37-45 effect only runs when the user lands on '/'. Expo Router preserves the current URL on reload, so /activate etc. renders directly without going through index. There is no global `useEffect(()=>{ if(status==='locked' && !atPinRoute) router.replace('/pin?mode=unlock') },[status])` in app/_layout.tsx Shell. Fix: add that effect inside Shell (useSegments to detect current route). Bug B (render loop): error surfaces when switching to AR in the drawer. app/_layout.tsx Shell wraps everything in a View with dirStyle(isRTL?'rtl':'ltr'); switching language updates isRTL in I18nProvider which may re-mount children; combined with a non-memoized callback (open/close) in OverlayHost or Drawer, it can trigger a feedback loop. Confirmed via console error 'Maximum update depth exceeded' and ErrorBoundary catching the crash."
+}
