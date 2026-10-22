@@ -10,11 +10,11 @@ import { Icon } from "@/src/components/Icon";
 import { PressableScale } from "@/src/components/PressableScale";
 import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { useToast } from "@/src/components/Toast";
-import { PrimaryButton } from "@/src/components/ui";
+import { PrimaryButton, StepBar, TextButton } from "@/src/components/ui";
 import { useI18n } from "@/src/i18n";
 import { createPhrase, deriveWallet, randomWords } from "@/src/lib/wallet";
 import { useApp } from "@/src/state/app";
-import { makeStyles, useTheme } from "@/src/theme";
+import { fonts, makeStyles, useTheme } from "@/src/theme";
 
 function shuffle<T>(arr: T[]) {
   const a = [...arr];
@@ -64,39 +64,42 @@ export default function CreateWallet() {
         title={step === "show" ? t("create.title") : t("create.verifyTitle")}
         onBack={() => (step === "verify" ? setStep("show") : router.back())}
       />
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 20 }]} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
+          <StepBar step={step === "show" ? 1 : 2} total={2} label={t("create.step", { n: step === "show" ? 1 : 2, total: 2 })} />
           {step === "show" ? (
             <>
               <Text style={styles.subtitle}>{t("create.subtitle")}</Text>
               <PressableScale testID="create-reveal-button" onPress={() => setRevealed(true)} scaleTo={0.99} style={styles.grid} haptic={!revealed}>
                 {words.map((w, i) => (
                   <View key={i} style={styles.word}>
-                    <Text style={styles.idx}>{i + 1}</Text>
-                    <Text style={[styles.wordText, !revealed && styles.hidden]} testID={`create-word-${i + 1}`}>
+                    <View style={styles.idxBadge}>
+                      <Text style={styles.idx}>{i + 1}</Text>
+                    </View>
+                    <Text style={[styles.wordText, !revealed && styles.hidden]} testID={`create-word-${i + 1}`} numberOfLines={1}>
                       {revealed ? w : "••••••"}
                     </Text>
                   </View>
                 ))}
                 {!revealed ? (
                   <View style={styles.revealOverlay}>
-                    <Icon name="eye" size={22} color={colors.textStrong} />
+                    <View style={styles.revealIcon}>
+                      <Icon name="eye" size={22} color={colors.textStrong} />
+                    </View>
                     <Text style={styles.revealText}>{t("create.reveal")}</Text>
                   </View>
                 ) : null}
               </PressableScale>
               {revealed ? (
-                <PressableScale
+                <TextButton
                   testID="create-copy-button"
-                  style={styles.copy}
+                  icon="copy"
+                  label={t("common.copy")}
                   onPress={async () => {
                     await Clipboard.setStringAsync(phrase);
                     toast.show(t("create.copyWarn"), "info");
                   }}
-                >
-                  <Icon name="copy" size={16} color={colors.accentBlue} />
-                  <Text style={styles.copyText}>{t("common.copy")}</Text>
-                </PressableScale>
+                />
               ) : null}
               <View style={styles.warn}>
                 <Icon name="alert" size={18} color={colors.accentAmber} />
@@ -105,11 +108,13 @@ export default function CreateWallet() {
                   <Text style={styles.warnText}>{t("create.warning2")}</Text>
                 </View>
               </View>
-              <PressableScale testID="create-confirm-checkbox" onPress={() => setChecked(!checked)} style={styles.check} scaleTo={0.98}>
-                <View style={[styles.box, checked && styles.boxOn]}>{checked ? <Icon name="check" size={14} color={colors.onBrandPrimary} strokeWidth={3} /> : null}</View>
-                <Text style={styles.checkText}>{t("create.confirmCheck")}</Text>
-              </PressableScale>
-              <PrimaryButton testID="create-continue-button" label={t("common.continue")} disabled={!revealed || !checked} onPress={() => setStep("verify")} />
+              <View style={styles.footer}>
+                <PressableScale testID="create-confirm-checkbox" onPress={() => setChecked(!checked)} style={styles.check} scaleTo={0.98}>
+                  <View style={[styles.box, checked && styles.boxOn]}>{checked ? <Icon name="check" size={14} color={colors.onBrandPrimary} strokeWidth={3} /> : null}</View>
+                  <Text style={styles.checkText}>{t("create.confirmCheck")}</Text>
+                </PressableScale>
+                <PrimaryButton testID="create-continue-button" label={t("common.continue")} disabled={!revealed || !checked} onPress={() => setStep("verify")} />
+              </View>
             </>
           ) : (
             <Animated.View entering={FadeIn.duration(300)} style={styles.verify}>
@@ -140,13 +145,15 @@ export default function CreateWallet() {
                   {t("create.wrong")}
                 </Text>
               ) : null}
-              <PrimaryButton
-                testID="verify-continue-button"
-                label={busy ? t("create.securing") : t("common.continue")}
-                loading={busy}
-                disabled={!allCorrect}
-                onPress={finish}
-              />
+              <View style={styles.footer}>
+                <PrimaryButton
+                  testID="verify-continue-button"
+                  label={busy ? t("create.securing") : t("common.continue")}
+                  loading={busy}
+                  disabled={!allCorrect}
+                  onPress={finish}
+                />
+              </View>
             </Animated.View>
           )}
         </View>
@@ -158,17 +165,18 @@ export default function CreateWallet() {
 const useStyles = makeStyles((c) => ({
   root: { flex: 1, backgroundColor: c.canvas },
   scroll: { flexGrow: 1 },
-  content: { width: "100%", maxWidth: 520, alignSelf: "center", paddingHorizontal: 20, gap: 16 },
-  subtitle: { color: c.muted, fontSize: 14, lineHeight: 21 },
+  content: { flex: 1, width: "100%", maxWidth: 520, alignSelf: "center", paddingHorizontal: 20, gap: 18 },
+  subtitle: { color: c.textSoft, fontSize: 15, lineHeight: 22, textAlign: "center", paddingHorizontal: 8 },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
     padding: 14,
-    borderRadius: 20,
+    borderRadius: 24,
     backgroundColor: c.glass,
     borderWidth: 1,
     borderColor: c.border,
+    borderTopColor: c.glassHighlight,
     overflow: "hidden",
   },
   word: {
@@ -177,15 +185,16 @@ const useStyles = makeStyles((c) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    height: 44,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    height: 48,
+    paddingHorizontal: 8,
+    borderRadius: 14,
     backgroundColor: c.glassInput,
     borderWidth: 1,
     borderColor: c.white10,
   },
-  idx: { color: c.textFaint, fontSize: 12, fontWeight: "700", width: 18 },
-  wordText: { color: c.textStrong, fontSize: 15, fontWeight: "600" },
+  idxBadge: { width: 28, height: 28, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: c.brandTertiary },
+  idx: { color: c.accentBlue, fontSize: 12, fontFamily: fonts.mono, textAlign: "center" },
+  wordText: { flex: 1, color: c.textStrong, fontSize: 16, fontWeight: "700" },
   hidden: { color: c.textFaint, letterSpacing: 2 },
   revealOverlay: {
     position: "absolute",
@@ -195,37 +204,37 @@ const useStyles = makeStyles((c) => ({
     end: 0,
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
     backgroundColor: c.overlay,
   },
-  revealText: { color: c.textStrong, fontSize: 14, fontWeight: "700" },
-  copy: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "center", paddingHorizontal: 16, height: 40 },
-  copyText: { color: c.accentBlue, fontSize: 14, fontWeight: "600" },
-  warn: { flexDirection: "row", gap: 10, padding: 14, borderRadius: 16, backgroundColor: c.amberSoft },
+  revealIcon: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center", backgroundColor: c.white10, borderWidth: 1, borderColor: c.white15 },
+  revealText: { color: c.textStrong, fontSize: 15, fontWeight: "700", textAlign: "center" },
+  warn: { flexDirection: "row", gap: 12, padding: 16, borderRadius: 18, backgroundColor: c.amberSoft, borderWidth: 1, borderColor: c.amberSoft },
   warnTexts: { flex: 1, gap: 4 },
   warnText: { color: c.onSurfaceSecondary, fontSize: 13, lineHeight: 19 },
-  check: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 48 },
-  box: { width: 24, height: 24, borderRadius: 8, borderWidth: 1.5, borderColor: c.white15, alignItems: "center", justifyContent: "center" },
-  boxOn: { backgroundColor: c.brandPrimary, borderColor: c.brandPrimary },
-  checkText: { flex: 1, color: c.onSurfaceSecondary, fontSize: 14 },
-  verify: { gap: 18 },
-  quiz: { gap: 10 },
+  footer: { marginTop: "auto", gap: 14, paddingTop: 8 },
+  check: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 48, paddingHorizontal: 4 },
+  box: { width: 26, height: 26, borderRadius: 8, borderWidth: 1.5, borderColor: c.white15, alignItems: "center", justifyContent: "center", backgroundColor: c.glassSubtle },
+  boxOn: { backgroundColor: c.brandSecondary, borderColor: c.accentBlue },
+  checkText: { flex: 1, color: c.onSurfaceSecondary, fontSize: 14, fontWeight: "500" },
+  verify: { flex: 1, gap: 20 },
+  quiz: { gap: 10, padding: 16, borderRadius: 20, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border },
   quizLabel: { color: c.textStrong, fontSize: 15, fontWeight: "700" },
   options: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   option: {
     width: "47%",
     flexGrow: 1,
-    height: 46,
-    borderRadius: 14,
+    height: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: c.glassStrong,
+    backgroundColor: c.glassSubtle,
     borderWidth: 1,
     borderColor: c.border,
   },
-  optionOn: { backgroundColor: c.brandTertiary, borderColor: c.borderStrong },
+  optionOn: { backgroundColor: c.brandTertiary, borderColor: c.accentBlue },
   optionWrong: { borderColor: c.accentRose, backgroundColor: c.roseSoft },
-  optionText: { color: c.textSoft, fontSize: 14, fontWeight: "600" },
+  optionText: { color: c.textSoft, fontSize: 15, fontWeight: "600", textAlign: "center" },
   optionTextOn: { color: c.textStrong },
-  error: { color: c.accentRose, fontSize: 13, textAlign: "center" },
+  error: { color: c.accentRose, fontSize: 13, fontWeight: "500", textAlign: "center" },
 }));

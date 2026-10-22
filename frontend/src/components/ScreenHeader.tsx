@@ -15,19 +15,16 @@ type Props = {
   testID: string;
 };
 
-/** Sticky screen header from the mockups: glass back button, centered title, glass action. */
+/** Screen header: glass back button, perfectly centered title (independent of side buttons), optional glass action. */
 export function ScreenHeader({ title, subtitle, subtitleAccent, onBack, action, testID }: Props) {
   const styles = useStyles();
   const { colors } = useTheme();
   const { isRTL, t } = useI18n();
   const insets = useSafeAreaInsets();
   return (
-    <View testID={testID} style={[styles.wrap, { paddingTop: insets.top + 10 }]}>
+    <View testID={testID} style={[styles.wrap, { paddingTop: insets.top + 8 }]}>
       <View style={styles.row}>
-        <PressableScale testID={`${testID}-back`} accessibilityLabel={t("common.back")} onPress={onBack} style={styles.btn}>
-          <Icon name={isRTL ? "chevronRight" : "chevronLeft"} size={20} color={colors.textSoft} strokeWidth={2.2} />
-        </PressableScale>
-        <View style={styles.center}>
+        <View pointerEvents="none" style={styles.center}>
           <Text style={styles.title} numberOfLines={1}>
             {title}
           </Text>
@@ -37,9 +34,17 @@ export function ScreenHeader({ title, subtitle, subtitleAccent, onBack, action, 
             </Text>
           ) : null}
         </View>
+        <PressableScale testID={`${testID}-back`} accessibilityLabel={t("common.back")} onPress={onBack} style={styles.btn}>
+          <Icon name={isRTL ? "chevronRight" : "chevronLeft"} size={20} color={colors.textStrong} strokeWidth={2.2} />
+        </PressableScale>
         {action ? (
-          <PressableScale testID={action.testID} accessibilityLabel={action.label} onPress={action.onPress} style={styles.btn}>
-            <Icon name={action.icon} size={20} color={action.accent ? colors.accentSky : colors.textSoft} />
+          <PressableScale
+            testID={action.testID}
+            accessibilityLabel={action.label}
+            onPress={action.onPress}
+            style={[styles.btn, action.accent && styles.btnAccent]}
+          >
+            <Icon name={action.icon} size={20} color={action.accent ? colors.accentSky : colors.textStrong} />
           </PressableScale>
         ) : (
           <View style={styles.spacer} />
@@ -57,20 +62,22 @@ const useStyles = makeStyles((c) => ({
     maxWidth: 560,
     alignSelf: "center",
   },
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  row: { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   btn: {
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: c.glassCard,
+    backgroundColor: c.glassStrong,
     borderWidth: 1,
     borderColor: c.white10,
+    borderTopColor: c.glassHighlight,
   },
+  btnAccent: { backgroundColor: c.brandTertiary, borderColor: c.blueBorder },
   spacer: { width: 44 },
-  center: { flex: 1, alignItems: "center" },
-  title: { color: c.textStrong, fontSize: 17, fontWeight: "600", letterSpacing: 0.2 },
-  subtitle: { color: c.muted, fontSize: 11, marginTop: 2 },
+  center: { position: "absolute", start: 56, end: 56, top: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
+  title: { color: c.textStrong, fontSize: 18, fontWeight: "700", textAlign: "center" },
+  subtitle: { color: c.muted, fontSize: 12, marginTop: 2, textAlign: "center" },
   subtitleAccent: { color: c.accentBlue, fontWeight: "500" },
 }));

@@ -50,6 +50,7 @@ export const ar: Dict = {
     warning1: "لا تشاركها أبدًا. لن تطلبها Tirelire منك أبدًا.",
     warning2: "إذا فقدتها، فلن يتمكن أحد من استعادة أموالك.",
     confirmCheck: "لقد كتبت عبارتي السرية",
+    step: "الخطوة {{n}} من {{total}}",
     verifyTitle: "تحقق من عبارتك",
     verifySubtitle: "اختر الكلمة الصحيحة لكل موضع.",
     word: "الكلمة رقم {{n}}",
@@ -64,6 +65,7 @@ export const ar: Dict = {
     words: "{{n}} كلمة",
     invalid: "هذه العبارة السرية غير صالحة",
     restoring: "جارٍ الاستعادة…",
+    secure: "تتم معالجة عبارتك على هذا الجهاز فقط، ولا تغادر هاتفك أبدًا.",
   },
   pin: {
     create: "أنشئ رمز PIN",
@@ -126,7 +128,14 @@ export const ar: Dict = {
     activateNow: "فعِّل الآن",
   },
   nav: { home: "الرئيسية", history: "السجل", team: "الفريق", plus: "إجراءات سريعة" },
-  plus: { addAccount: "حساب جديد", deposit: "إيداع", withdraw: "سحب" },
+  plus: {
+    addAccount: "حساب جديد",
+    addAccountSub: "أنشئ حساب ادخار",
+    deposit: "إيداع",
+    depositSub: "استلم USDT على شبكة BNB",
+    withdraw: "سحب",
+    withdrawSub: "أرسل إلى أي محفظة BEP20",
+  },
   history: {
     title: "السجل",
     month: "نشاط هذا الشهر ({{month}})",

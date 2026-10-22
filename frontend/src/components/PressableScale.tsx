@@ -9,10 +9,12 @@ type Props = Omit<PressableProps, "style" | "children"> & {
   style?: StyleProp<ViewStyle>;
   scaleTo?: number;
   haptic?: boolean;
+  /** Fade the control when disabled (off for buttons that draw their own disabled look). */
+  dimWhenDisabled?: boolean;
   children?: ReactNode;
 };
 
-export function PressableScale({ style, scaleTo = 0.95, haptic = true, onPress, disabled, children, ...rest }: Props) {
+export function PressableScale({ style, scaleTo = 0.95, haptic = true, dimWhenDisabled = true, onPress, disabled, children, ...rest }: Props) {
   const scale = useSharedValue(1);
   const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   return (
@@ -31,7 +33,7 @@ export function PressableScale({ style, scaleTo = 0.95, haptic = true, onPress, 
         if (haptic && Platform.OS !== "web") Haptics.selectionAsync().catch(() => undefined);
         onPress?.(e);
       }}
-      style={[style, animated, disabled ? { opacity: 0.5 } : null]}
+      style={[style, animated, disabled && dimWhenDisabled ? { opacity: 0.45 } : null]}
     >
       {children}
     </AnimatedPressable>

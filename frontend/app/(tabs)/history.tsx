@@ -13,7 +13,7 @@ import { dayLabel, useI18n } from "@/src/i18n";
 import type { UiTx } from "@/src/lib/entries";
 import { fmtAmount } from "@/src/lib/format";
 import { useOverlay } from "@/src/state/overlay";
-import { makeStyles, useTheme } from "@/src/theme";
+import { fonts, makeStyles, useTheme } from "@/src/theme";
 
 type Filter = "all" | "income" | "expense" | "transfer";
 
@@ -159,29 +159,29 @@ export default function History() {
 const useStyles = makeStyles((c) => ({
   root: { flex: 1, backgroundColor: c.canvas },
   pad: { paddingHorizontal: 20, width: "100%", maxWidth: 560, alignSelf: "center", paddingTop: 8 },
-  summary: { padding: 16, borderRadius: 16, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight },
+  summary: { padding: 18, borderRadius: 24, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight },
   summaryHead: { marginBottom: 12 },
   summaryTitle: { color: c.muted, fontSize: 11, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase" },
   summaryGrid: { flexDirection: "row", gap: 12 },
-  summaryBox: { flex: 1, padding: 10, borderRadius: 12, backgroundColor: c.track, borderWidth: 1, borderColor: c.divider },
+  summaryBox: { flex: 1, padding: 12, borderRadius: 16, backgroundColor: c.track, borderWidth: 1, borderColor: c.divider },
   summaryLabelRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 },
-  summaryLabel: { fontSize: 11, fontWeight: "500" },
-  summaryValue: { color: c.textStrong, fontSize: 16, fontWeight: "700", fontVariant: ["tabular-nums"] },
+  summaryLabel: { fontSize: 12, fontWeight: "600" },
+  summaryValue: { color: c.textStrong, fontSize: 19, fontFamily: fonts.display, fontVariant: ["tabular-nums"] },
   search: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    height: 48,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    height: 52,
+    paddingHorizontal: 16,
+    borderRadius: 26,
     backgroundColor: c.glass,
     borderWidth: 1,
     borderColor: c.white10,
   },
-  searchInput: { flex: 1, color: c.textStrong, fontSize: 14, height: "100%", outlineStyle: "none" } as any,
-  sticky: { backgroundColor: c.canvas, width: "100%", maxWidth: 560, alignSelf: "center" },
+  searchInput: { flex: 1, color: c.textStrong, fontSize: 15, height: "100%", outlineStyle: "none" } as any,
+  sticky: { backgroundColor: c.stickyBar, width: "100%", maxWidth: 560, alignSelf: "center" },
   group: { paddingHorizontal: 20, gap: 10, marginTop: 8, marginBottom: 8, width: "100%", maxWidth: 560, alignSelf: "center" },
   groupLabel: { color: c.muted, fontSize: 12, fontWeight: "600", letterSpacing: 1, textTransform: "uppercase", paddingHorizontal: 4 },
   empty: { alignItems: "center", gap: 10, paddingVertical: 48 },
-  emptyText: { color: c.muted, fontSize: 14 },
+  emptyText: { color: c.muted, fontSize: 14, textAlign: "center" },
 }));

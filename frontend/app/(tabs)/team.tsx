@@ -20,7 +20,7 @@ import type { Referral } from "@/src/lib/chain";
 import { fmtAmount, shortAddr } from "@/src/lib/format";
 import { useApp } from "@/src/state/app";
 import { useOverlay } from "@/src/state/overlay";
-import { makeStyles, useTheme, type ThemeColors } from "@/src/theme";
+import { fonts, makeStyles, useTheme, type ThemeColors } from "@/src/theme";
 
 type Filter = "all" | "active" | "dormant";
 const TIERS = [
@@ -191,15 +191,14 @@ export default function Team() {
             <View style={styles.card}>
               <Text style={styles.fieldLabel}>{t("team.code")}</Text>
               <View style={styles.field}>
-                <View style={styles.fieldLeft}>
+                <View style={[styles.fieldLeft, styles.flex]}>
                   <Icon name="ticket" size={16} color={colors.accentBlue} />
-                  <Text style={styles.code} testID="team-referral-code">
+                  <Text style={styles.code} numberOfLines={1} testID="team-referral-code">
                     {code}
                   </Text>
                 </View>
-                <PressableScale testID="team-copy-code-button" onPress={() => copy(code)} style={styles.smallBtn}>
-                  <Icon name="copy" size={13} color={colors.textStrong} />
-                  <Text style={styles.smallBtnText}>{t("common.copy")}</Text>
+                <PressableScale testID="team-copy-code-button" accessibilityLabel={t("common.copy")} onPress={() => copy(code)} style={styles.iconBtn}>
+                  <Icon name="copy" size={16} color={colors.textStrong} />
                 </PressableScale>
               </View>
               <Text style={[styles.fieldLabel, styles.fieldGap]}>{t("team.link")}</Text>
@@ -210,16 +209,23 @@ export default function Team() {
                     {link}
                   </Text>
                 </View>
-                <PressableScale testID="team-copy-link-button" onPress={() => copy(link)} style={styles.iconBtn}>
-                  <Icon name="copy" size={13} color={colors.textStrong} />
+              </View>
+              <View style={styles.linkActions}>
+                <PressableScale testID="team-copy-link-button" onPress={() => copy(link)} style={styles.copyBtn}>
+                  <Icon name="copy" size={16} color={colors.textStrong} />
+                  <Text style={styles.copyText} numberOfLines={1}>
+                    {t("common.copy")}
+                  </Text>
                 </PressableScale>
                 <PressableScale
                   testID="team-share-button"
                   onPress={() => Share.share({ message: t("team.shareMsg", { code, link }) })}
                   style={styles.shareBtn}
                 >
-                  <Icon name="share" size={12} color={colors.onBrandPrimary} />
-                  <Text style={styles.shareText}>{t("common.share")}</Text>
+                  <Icon name="share" size={16} color={colors.onBrandPrimary} />
+                  <Text style={styles.shareText} numberOfLines={1}>
+                    {t("common.share")}
+                  </Text>
                 </PressableScale>
               </View>
             </View>
@@ -279,7 +285,7 @@ const useStyles = makeStyles((c) => ({
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: c.accentEmerald },
   upper: { color: c.muted, fontSize: 11, fontWeight: "600", letterSpacing: 1, textTransform: "uppercase" },
   totalRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 8 },
-  total: { color: c.textStrong, fontSize: 30, fontWeight: "800", letterSpacing: -0.5, fontVariant: ["tabular-nums"] },
+  total: { color: c.textStrong, fontSize: 34, fontFamily: fonts.display, letterSpacing: -0.5, fontVariant: ["tabular-nums"] },
   badge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, height: 22, borderRadius: 11, backgroundColor: c.emeraldSoft, borderWidth: 1, borderColor: c.emeraldBorder },
   badgeText: { color: c.accentEmerald, fontSize: 11, fontWeight: "700" },
   cardIcon: { width: 44, height: 44, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: c.brandTertiary, borderWidth: 1, borderColor: c.blueBorder },
@@ -287,7 +293,7 @@ const useStyles = makeStyles((c) => ({
   cell: { flex: 1, padding: 12, borderRadius: 16, backgroundColor: c.glassSubtle, borderWidth: 1, borderColor: c.divider },
   cellLabelRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 },
   cellLabel: { color: c.muted, fontSize: 11, flexShrink: 1 },
-  cellValue: { color: c.textStrong, fontSize: 18, fontWeight: "800" },
+  cellValue: { color: c.textStrong, fontSize: 20, fontFamily: fonts.display },
   cellSub: { color: c.muted, fontSize: 11, fontWeight: "400" },
   tier: { marginTop: 16, gap: 8 },
   tierRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
@@ -309,45 +315,60 @@ const useStyles = makeStyles((c) => ({
     borderColor: c.white10,
   },
   fieldLeft: { flexDirection: "row", alignItems: "center", gap: 10, minWidth: 0 },
-  code: { color: c.textStrong, fontSize: 14, fontWeight: "800", letterSpacing: 2, fontFamily: "monospace" },
-  link: { flexShrink: 1, color: c.textSoft, fontSize: 12, fontFamily: "monospace" },
-  smallBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 34, borderRadius: 12, backgroundColor: c.white10, borderWidth: 1, borderColor: c.border },
-  smallBtnText: { color: c.textStrong, fontSize: 12, fontWeight: "600" },
-  iconBtn: { width: 34, height: 34, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: c.white10, borderWidth: 1, borderColor: c.border },
-  shareBtn: {
+  code: { flexShrink: 1, color: c.textStrong, fontSize: 15, letterSpacing: 1.5, fontFamily: fonts.display },
+  link: { flexShrink: 1, color: c.textSoft, fontSize: 13, fontFamily: "monospace" },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: c.white10, borderWidth: 1, borderColor: c.border },
+  linkActions: { flexDirection: "row", gap: 10, marginTop: 12 },
+  copyBtn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    justifyContent: "center",
+    gap: 8,
+    height: 46,
     paddingHorizontal: 12,
-    height: 34,
-    borderRadius: 12,
+    borderRadius: 23,
+    backgroundColor: c.white10,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  copyText: { color: c.textStrong, fontSize: 14, fontWeight: "700", flexShrink: 1 },
+  shareBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: 46,
+    paddingHorizontal: 12,
+    borderRadius: 23,
     backgroundColor: c.brandSecondary,
     shadowColor: c.brandPrimary,
     shadowOpacity: 0.4,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
-  shareText: { color: c.onBrandPrimary, fontSize: 12, fontWeight: "600" },
+  shareText: { color: c.onBrandPrimary, fontSize: 14, fontWeight: "700", flexShrink: 1 },
   membersHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16 },
   membersTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   countBadge: { paddingHorizontal: 8, height: 20, borderRadius: 10, justifyContent: "center", backgroundColor: c.brandTertiary },
   countText: { color: c.accentBlue, fontSize: 11, fontWeight: "800" },
   seeAll: { height: 32, justifyContent: "center" },
   seeAllText: { color: c.accentBlue, fontSize: 12, fontWeight: "600" },
-  sticky: { backgroundColor: c.canvas, width: "100%", maxWidth: 560, alignSelf: "center" },
+  sticky: { backgroundColor: c.stickyBar, width: "100%", maxWidth: 560, alignSelf: "center" },
   members: { gap: 10 },
-  member: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, backgroundColor: c.glassCard, borderWidth: 1, borderColor: c.border },
+  member: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, minHeight: 72, borderRadius: 20, backgroundColor: c.glassCard, borderWidth: 1, borderColor: c.border },
   initials: { width: 40, height: 40, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: c.white15 },
   initialsText: { color: c.textStrong, fontSize: 12, fontWeight: "800" },
   memberText: { flex: 1, minWidth: 0 },
   memberNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  memberName: { color: c.textStrong, fontSize: 13, fontWeight: "600", flexShrink: 1 },
+  memberName: { color: c.textStrong, fontSize: 14, fontWeight: "700", flexShrink: 1 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   memberMeta: { color: c.muted, fontSize: 11, marginTop: 3, fontFamily: "monospace" },
   metaFaint: { color: c.textFaint },
   metaAmber: { color: c.accentAmber },
   memberRight: { alignItems: "flex-end" },
-  memberEarned: { color: c.accentEmerald, fontSize: 13, fontWeight: "700" },
+  memberEarned: { color: c.accentEmerald, fontSize: 14, fontFamily: fonts.display },
   memberEarnedZero: { color: c.muted },
   memberDate: { color: c.muted, fontSize: 10, marginTop: 3 },
   empty: { alignItems: "center", gap: 10, paddingVertical: 36 },

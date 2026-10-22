@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { RtlContext } from "@/src/theme";
 import { storage } from "@/src/utils/storage";
 import { ar } from "./ar";
 import { en, type Dict } from "./en";
@@ -61,7 +62,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     () => ({ lang, setLang, t, dict: DICTS[lang], isRTL: lang === "ar", ready }),
     [lang, setLang, t, ready],
   );
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+  return (
+    <I18nContext.Provider value={value}>
+      <RtlContext.Provider value={value.isRTL}>{children}</RtlContext.Provider>
+    </I18nContext.Provider>
+  );
 }
 
 export function useI18n() {

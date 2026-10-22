@@ -37,6 +37,13 @@ const VARIANTS: Record<BgVariant, Orb[]> = {
   ],
 };
 
+// Deterministic star field so the sky looks identical on every render.
+const STARS = (() => {
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  return Array.from({ length: 70 }, () => ({ x: rnd(), y: rnd(), r: 0.4 + rnd() * 1.1, o: 0.12 + rnd() * 0.5 }));
+})();
+
 export function CosmicBackground({ variant = "dashboard" }: { variant?: BgVariant }) {
   const { colors } = useTheme();
   const { width, height } = useWindowDimensions();
@@ -54,7 +61,7 @@ export function CosmicBackground({ variant = "dashboard" }: { variant?: BgVarian
             </RadialGradient>
           ))}
           <Pattern id="dots" width={24} height={24} patternUnits="userSpaceOnUse">
-            <Circle cx={1} cy={1} r={1} fill={colors.dot} fillOpacity={0.05} />
+            <Circle cx={1} cy={1} r={1} fill={colors.dot} fillOpacity={0.035} />
           </Pattern>
         </Defs>
         <Rect x={0} y={0} width={width} height={height} fill={colors.canvas} />
@@ -62,6 +69,9 @@ export function CosmicBackground({ variant = "dashboard" }: { variant?: BgVarian
           <Circle key={i} cx={o.x * width} cy={o.y * height} r={o.r * base} fill={`url(#orb${i})`} />
         ))}
         <Rect x={0} y={0} width={width} height={height} fill="url(#dots)" />
+        {STARS.map((s, i) => (
+          <Circle key={`s${i}`} cx={s.x * width} cy={s.y * height} r={s.r} fill={colors.dot} fillOpacity={s.o} />
+        ))}
       </Svg>
     </View>
   );

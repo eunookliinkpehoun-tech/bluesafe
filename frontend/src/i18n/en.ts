@@ -48,6 +48,7 @@ export const en = {
     warning1: "Never share it. Tirelire will never ask for it.",
     warning2: "If you lose it, nobody can recover your funds.",
     confirmCheck: "I have written down my passphrase",
+    step: "Step {{n}} of {{total}}",
     verifyTitle: "Verify your passphrase",
     verifySubtitle: "Select the right word for each position.",
     word: "Word #{{n}}",
@@ -62,6 +63,7 @@ export const en = {
     words: "{{n}} words",
     invalid: "This passphrase is not valid",
     restoring: "Restoring…",
+    secure: "Your passphrase is processed on this device only. It never leaves your phone.",
   },
   pin: {
     create: "Create your PIN",
@@ -124,7 +126,14 @@ export const en = {
     activateNow: "Activate now",
   },
   nav: { home: "Home", history: "History", team: "Team", plus: "Quick actions" },
-  plus: { addAccount: "Add new account", deposit: "Deposit", withdraw: "Withdraw" },
+  plus: {
+    addAccount: "Add new account",
+    addAccountSub: "Create a savings pocket",
+    deposit: "Deposit",
+    depositSub: "Receive USDT on BNB Chain",
+    withdraw: "Withdraw",
+    withdrawSub: "Send to any BEP20 wallet",
+  },
   history: {
     title: "History",
     month: "This month's activity ({{month}})",

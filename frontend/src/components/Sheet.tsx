@@ -36,7 +36,13 @@ export function Sheet({ title, onClose, children, testID }: { title: string; onC
               <Icon name="x" size={18} color={colors.textSoft} />
             </PressableScale>
           </View>
-          <ScrollView bounces={false} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
+          <ScrollView
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            style={styles.scroll}
+            contentContainerStyle={styles.body}
+          >
             {children}
           </ScrollView>
         </Animated.View>
@@ -49,17 +55,18 @@ const useStyles = makeStyles((c) => ({
   host: { position: "absolute", top: 0, bottom: 0, start: 0, end: 0, justifyContent: "flex-end" },
   backdrop: { position: "absolute", top: 0, bottom: 0, start: 0, end: 0, backgroundColor: c.overlay },
   fill: { flex: 1 },
-  sticky: { width: "100%", alignItems: "center" },
+  sticky: { width: "100%", alignItems: "center", maxHeight: "92%" },
   panel: {
     width: "100%",
     maxWidth: 560,
-    maxHeight: "92%",
+    flexShrink: 1,
     backgroundColor: c.sheet,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     borderWidth: 1,
     borderBottomWidth: 0,
     borderColor: c.white10,
+    borderTopColor: c.glassHighlight,
     paddingHorizontal: 20,
     paddingTop: 10,
     shadowColor: c.canvas,
@@ -68,18 +75,19 @@ const useStyles = makeStyles((c) => ({
     shadowOffset: { width: 0, height: -10 },
     elevation: 24,
   },
-  handle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: c.white15, marginBottom: 12 },
-  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
-  title: { flex: 1, color: c.textStrong, fontSize: 18, fontWeight: "700" },
+  handle: { alignSelf: "center", width: 44, height: 5, borderRadius: 3, backgroundColor: c.white15, marginBottom: 14 },
+  header: { minHeight: 40, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 18 },
+  title: { flex: 1, color: c.textStrong, fontSize: 20, fontWeight: "700" },
   close: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: c.glassStrong,
     borderWidth: 1,
     borderColor: c.border,
   },
-  body: { gap: 16, paddingBottom: 4 },
+  scroll: { flexShrink: 1 },
+  body: { gap: 18, paddingBottom: 4 },
 }));

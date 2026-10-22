@@ -1,18 +1,16 @@
-import { Redirect } from "expo-router";
 import { Tabs } from "expo-router/js-tabs";
 import { View } from "react-native";
 
 import { FloatingTabBar } from "@/src/components/FloatingTabBar";
 import { OverlayHost } from "@/src/components/OverlayHost";
-import { useApp } from "@/src/state/app";
 import { OverlayProvider } from "@/src/state/overlay";
 import { makeStyles, useTheme } from "@/src/theme";
 
+// Access control lives in the root layout guard: keeping the navigator mounted here
+// avoids an update loop when the wallet is locked or the demo is closed.
 export default function TabsLayout() {
   const styles = useStyles();
   const { colors } = useTheme();
-  const { status } = useApp();
-  if (status !== "ready" && status !== "demo") return <Redirect href="/" />;
 
   return (
     <OverlayProvider>

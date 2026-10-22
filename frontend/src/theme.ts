@@ -3,8 +3,44 @@
 // A plain key is a background, and its `on` partner is the text or icon color on top of it.
 // Build sheets with makeStyles so colors and layout live together.
 
-import { useMemo } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { Appearance, Platform, StyleSheet, useColorScheme } from "react-native";
+
+/** Font families registered in app/_layout.tsx (Satoshi for UI text, Space Grotesk for numbers and codes). */
+export const fonts = {
+  regular: "Satoshi-Regular",
+  medium: "Satoshi-Medium",
+  bold: "Satoshi-Bold",
+  black: "Satoshi-Black",
+  display: "SpaceGrotesk-Bold",
+  mono: "SpaceGrotesk-Medium",
+};
+
+export const fontAssets = {
+  [fonts.regular]: require("../assets/fonts/Satoshi-Regular.ttf"),
+  [fonts.medium]: require("../assets/fonts/Satoshi-Medium.ttf"),
+  [fonts.bold]: require("../assets/fonts/Satoshi-Bold.ttf"),
+  [fonts.black]: require("../assets/fonts/Satoshi-Black.ttf"),
+  [fonts.display]: require("../assets/fonts/SpaceGrotesk-Bold.ttf"),
+  [fonts.mono]: require("../assets/fonts/SpaceGrotesk-Medium.ttf"),
+};
+
+const WEIGHT_FONT: Record<string, string> = {
+  normal: fonts.regular,
+  "100": fonts.regular,
+  "200": fonts.regular,
+  "300": fonts.regular,
+  "400": fonts.regular,
+  "500": fonts.medium,
+  "600": fonts.bold,
+  "700": fonts.bold,
+  bold: fonts.bold,
+  "800": fonts.black,
+  "900": fonts.black,
+};
+
+/** True when the UI language is right-to-left. Provided by I18nProvider. */
+export const RtlContext = createContext(false);
 
 /** Forces a layout direction: native Yoga uses the `direction` style, react-native-web the `dir` attribute. */
 type Dir = "ltr" | "rtl";
@@ -71,6 +107,10 @@ const dark = {
   white70: "rgba(255, 255, 255, 0.72)",
   qrBackground: "#FFFFFF",
   qrForeground: "#030712",
+  disabled: "rgba(30, 41, 59, 0.72)",
+  onDisabled: "#64748B",
+  glassTop: "rgba(255, 255, 255, 0.18)",
+  stickyBar: "rgba(3, 6, 17, 0.82)",
 
   // Text scale
   textStrong: "#FFFFFF",
@@ -125,12 +165,35 @@ export function useTheme(): { scheme: ColorScheme; colors: ThemeColors } {
   return { scheme, colors: themes[scheme] ?? dark };
 }
 
+/**
+ * Maps fontWeight to the matching custom font file (Android ignores fontWeight on custom fonts).
+ * A base text style (color + fontSize) without weight gets the regular face; size-only modifiers keep the parent's face.
+ * Letter spacing is dropped in RTL because it breaks Arabic letter joining.
+ */
+function applyFonts(sheet: Record<string, any>, rtl: boolean) {
+  const out: Record<string, any> = {};
+  for (const [name, style] of Object.entries(sheet)) {
+    if (!style || typeof style !== "object" || !("fontSize" in style || "fontWeight" in style || "fontFamily" in style)) {
+      out[name] = style;
+      continue;
+    }
+    const next = { ...style };
+    if (next.fontFamily === "monospace") next.fontFamily = fonts.mono;
+    if (!next.fontFamily && ("fontWeight" in next || "color" in next)) next.fontFamily = WEIGHT_FONT[String(next.fontWeight ?? "400")] ?? fonts.regular;
+    delete next.fontWeight;
+    if (rtl) delete next.letterSpacing;
+    out[name] = next;
+  }
+  return out;
+}
+
 export function makeStyles<T extends StyleSheet.NamedStyles<T> | StyleSheet.NamedStyles<any>>(
   factory: (colors: ThemeColors) => T & StyleSheet.NamedStyles<any>,
 ): () => T {
   return function useStyles(): T {
     const { colors } = useTheme();
-    return useMemo(() => StyleSheet.create(factory(colors)), [colors]);
+    const rtl = useContext(RtlContext);
+    return useMemo(() => StyleSheet.create(applyFonts(factory(colors), rtl)) as T, [colors, rtl]);
   };
 }
 

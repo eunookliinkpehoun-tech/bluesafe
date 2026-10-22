@@ -1,0 +1,205 @@
+{
+  "app_name": "Decentralized Cosmic Vault",
+  "personality": "6 Glass / Luxe DARK structure + 7 Dark-First Utility typography",
+  "personality_one_liner": "A cinematic, premium Web3 vault that pairs cosmic depth and glassmorphism with high-utility tech typography for a Revolut-level crypto experience.",
+  "color": {
+    "surface": "#02040A",
+    "onSurface": "#F8FAFC",
+    "surfaceSecondary": "rgba(15, 23, 42, 0.6)",
+    "onSurfaceSecondary": "#F1F5F9",
+    "surfaceTertiary": "rgba(30, 41, 59, 0.8)",
+    "onSurfaceTertiary": "#E2E8F0",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#02040A",
+    "brand": "#2563EB",
+    "brandPrimary": "#38BDF8",
+    "onBrandPrimary": "#02040A",
+    "brandSecondary": "#0284C7",
+    "onBrandSecondary": "#F8FAFC",
+    "brandTertiary": "rgba(56, 189, 248, 0.15)",
+    "onBrandTertiary": "#38BDF8",
+    "success": "#10B981",
+    "onSuccess": "#FFFFFF",
+    "warning": "#F59E0B",
+    "onWarning": "#FFFFFF",
+    "error": "#F43F5E",
+    "onError": "#FFFFFF",
+    "border": "rgba(255, 255, 255, 0.1)",
+    "borderStrong": "rgba(255, 255, 255, 0.2)",
+    "divider": "rgba(255, 255, 255, 0.05)",
+    "muted": "#94A3B8",
+    "onBrand": "#FFFFFF"
+  },
+  "typography": {
+    "displayFontFamily": "Space Grotesk",
+    "textFontFamily": "Satoshi",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous spacing for an expensive, uncrowded feel. Avoid cramped data rows.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Apply to floating bottom tab bar, central FAB, and all main dashboard cards.",
+      "Use 1px border with rgba(255, 255, 255, 0.1) over heavily tinted blurred bases.",
+      "Ensure bottom sheets and sticky headers use frosted glass over the cosmic background."
+    ],
+    "dont's": [
+      "Do not apply to form fields or body text regions.",
+      "Do not stack more than 2 glass surfaces (e.g. glass card + glass button inside is too much)."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid #0F172A"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Splash & Welcome",
+      "purpose": "Introduce the premium cosmic vault experience and prompt onboarding.",
+      "states": {
+        "loading": "Subtle glowing logo pulse",
+        "empty": "N/A",
+        "error": "N/A"
+      },
+      "layout": "Full-bleed cosmic background image. Welcome screen has hero visual, titles perfectly centered, pager dots, and vertically stacked CTAs anchored safely at bottom. Language switcher in top right header."
+    },
+    {
+      "name": "Wallet Setup (Create / Import)",
+      "purpose": "Securely guide the user through seed phrase generation and verification.",
+      "states": {
+        "loading": "Spinner in primary CTA",
+        "empty": "N/A",
+        "error": "Inline red toast with retry prompt"
+      },
+      "layout": "Header with centered title and back button. Content vertically centered. The 12-word grid sits in a glassmorphic container. Primary 'Continue' button sticky at the bottom inside KeyboardAvoidingView."
+    },
+    {
+      "name": "PIN & Activate",
+      "purpose": "Secure the vault and process the gasless activation fee.",
+      "states": {
+        "loading": "Skeleton for activation status",
+        "empty": "N/A",
+        "error": "Glass toast with #F43F5E border"
+      },
+      "layout": "PIN pad is numeric 3x4 grid, uniformly spaced, no borders. Activate screen has QR code in a glass card, copyable address pill, and progress bar (0.00 / 50 USDT)."
+    },
+    {
+      "name": "Dashboard (Home)",
+      "purpose": "Provide a high-level view of balances, actions, and recent activity.",
+      "states": {
+        "loading": "Pulse skeletons for balance and transaction rows",
+        "empty": "Glass card with 'No transactions yet' illustration",
+        "error": "Retry glass card"
+      },
+      "layout": "Header: Left Avatar (opens drawer), Center Address Pill, Right Bell. Hero: Huge total balance with Space Grotesk. Three circular quick-action buttons (Deposit, Transfer, Withdraw) in a row. Bottom section: List of transactions with sticky section headers."
+    },
+    {
+      "name": "History",
+      "purpose": "Detailed, searchable record of all financial movements.",
+      "states": {
+        "loading": "Row skeletons",
+        "empty": "Illustration + 'No history found'",
+        "error": "Retry prompt"
+      },
+      "layout": "Sticky glass header with Search input and scrolling filter chips (All/Income/Expenses/Transfers). Transactions grouped by day, using Emerald for income (+), Rose for expenses (-). List handles bottom safe area for floating tab bar."
+    },
+    {
+      "name": "Team",
+      "purpose": "Track referrals, commissions, and invite new members.",
+      "states": {
+        "loading": "Skeleton card",
+        "empty": "Illustration + 'Invite your first member'",
+        "error": "Retry prompt"
+      },
+      "layout": "Top glass card shows total commissions and tier progress. Two action buttons (Copy Code, Share Link). List of members separated by filter chips. Full width minus padding for cards."
+    },
+    {
+      "name": "Sub-accounts",
+      "purpose": "Manage segregated vault partitions and goals.",
+      "states": {
+        "loading": "Skeletons for cards",
+        "empty": "Illustration + 'Create your first sub-account'",
+        "error": "Retry prompt"
+      },
+      "layout": "Top allocated total card with a segmented progress bar. Grid or list of sub-account glass cards. Each card has an icon, name, flexible/locked badge, and progress. Sticky 'Create' button."
+    }
+  ],
+  "components": {
+    "PrimaryButton": "LinearGradient from brand to brandPrimary, pill radius, bold text. Disabled state MUST fall back to solid surfaceTertiary with muted text (no dim gradients).",
+    "FloatingTabBar": "Glassmorphic pill spanning mostly full width, safely above home indicator. 3 icons (Home, History, Team). Central FAB sits on top.",
+    "CentralFAB": "Raised circular button. Uses PrimaryButton gradient. Pops up a glass BottomSheet for Deposit/Withdraw/Add Account.",
+    "Drawer": "Triggered by Avatar. Full height side drawer with cosmic background. Lists accounts, settings, and language switch.",
+    "GlassCard": "Background surfaceSecondary (translucent slate). border 1px solid border token. blur effect. shadow_tier 0."
+  },
+  "images": {
+    "cosmic_background": {
+      "url": "https://images.pexels.com/photos/7629924/pexels-photo-7629924.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=940&w=650",
+      "dark": "https://images.pexels.com/photos/7629924/pexels-photo-7629924.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=940&w=650",
+      "alt": "Abstract dark blue cosmic pattern resembling a starry night sky"
+    },
+    "usdt_logo": {
+      "url": "https://images.unsplash.com/photo-1651055693398-0d66969cf759?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNDR8MHwxfHNlYXJjaHwxfHx1c2R0JTIwdGV0aGVyJTIwbG9nbyUyMHRyYW5zcGFyZW50fGVufDB8fHx8MTc5MjYwNTEyOHww&ixlib=rb-4.1.0&q=85",
+      "alt": "USDT Tether logo"
+    },
+    "bsc_logo": {
+      "url": "https://images.pexels.com/photos/9169177/pexels-photo-9169177.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Binance Smart Chain ecosystem visual"
+    },
+    "empty_state_illustration": {
+      "url": "https://images.unsplash.com/photo-1686519093104-3140c6dcf284?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwxfHxlbXB0eSUyMHdhbGxldCUyMGlsbHVzdHJhdGlvbiUyMGRhcmslMjBtb2RlfGVufDB8fHx8MTc5MjYwNTEyN3ww&ixlib=rb-4.1.0&q=85",
+      "dark": "https://images.unsplash.com/photo-1686519093104-3140c6dcf284?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwxfHxlbXB0eSUyMHdhbGxldCUyMGlsbHVzdHJhdGlvbiUyMGRhcmslMjBtb2RlfGVufDB8fHx8MTc5MjYwNTEyN3ww&ixlib=rb-4.1.0&q=85",
+      "alt": "Abstract dark illustration for empty state"
+    }
+  },
+  "haptics": {
+    "primary_button_press": "impactLight",
+    "tab_change": "selection",
+    "fab_press": "impactMedium",
+    "pin_key_press": "selection",
+    "transaction_success": "notificationSuccess",
+    "error_state": "notificationError"
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the user's requested palette: Dark mode (navy/near-black), Blue to Cyan gradient (#2563EB to #38BDF8), Emerald for income, Rose for expenses.",
+    "Implement the 'Cosmic background' using the provided background image in a full-bleed absolute container with a subtle gradient scrim to ensure text readability.",
+    "Disabled Primary Buttons: FIX the reported issue. Do NOT use a dim gradient. A disabled button MUST use a solid `surfaceTertiary` color with `muted` text so it looks intentionally disabled and professional.",
+    "Layout Polish: Ensure header titles are perfectly horizontally centered (absolute position if necessary, flanked by back button / language switch).",
+    "Spacing: Check the 'Import' page. The content should be vertically balanced, not clustered entirely at the top. Use `flex: 1` and `justifyContent: 'center'` where appropriate.",
+    "Floating Tab Bar: Custom implementation. It is a glassmorphic pill resting safely above the home indicator. The `+` FAB is centrally located and slightly raised, overlapping the pill.",
+    "Typography: Apply Space Grotesk for big numbers (balances, PIN) and Satoshi for standard UI text. Never mix weights improperly; rely on size (e.g., 2xl/3xl) for hierarchy.",
+    "Language/RTL: Ensure UI seamlessly flips or adapts for Arabic (RTL). Include language switch on Splash/Welcome and Drawer.",
+    "Images: Always use `expo-linear-gradient` as a scrim over the cosmic background image before placing text, ensuring WCAG AA contrast."
+  ]
+}

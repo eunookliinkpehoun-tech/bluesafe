@@ -1,5 +1,6 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,18 +18,27 @@ import { CATEGORY } from "@/src/lib/categories";
 import { fmtAmount, fmtUsd, pct } from "@/src/lib/format";
 import { useApp } from "@/src/state/app";
 import { useOverlay, type SheetKind } from "@/src/state/overlay";
-import { dirStyle, makeStyles, useTheme, webDir } from "@/src/theme";
+import { dirStyle, fonts, makeStyles, useTheme, webDir } from "@/src/theme";
 
-function ActionButton({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID: string }) {
+function ActionButton({ icon, label, onPress, testID, ring }: { icon: IconName; label: string; onPress: () => void; testID: string; ring: number }) {
   const styles = useStyles();
   const { colors } = useTheme();
   return (
-    <View style={styles.action}>
-      <PressableScale testID={testID} accessibilityLabel={label} onPress={onPress} style={styles.actionBtn}>
-        <Icon name={icon} size={28} color={colors.onSurfaceSecondary} />
-      </PressableScale>
-      <Text style={styles.actionLabel}>{label}</Text>
-    </View>
+    <PressableScale testID={testID} accessibilityLabel={label} accessibilityRole="button" onPress={onPress} style={styles.action} scaleTo={0.93}>
+      <LinearGradient
+        colors={[colors.borderStrong, colors.white10]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.actionRing, { width: ring, height: ring, borderRadius: ring / 2 }]}
+      >
+        <View style={[styles.actionBtn, { borderRadius: ring / 2 }]}>
+          <Icon name={icon} size={Math.round(ring * 0.38)} color={colors.textStrong} />
+        </View>
+      </LinearGradient>
+      <Text style={styles.actionLabel} numberOfLines={1}>
+        {label}
+      </Text>
+    </PressableScale>
   );
 }
 
@@ -37,6 +47,7 @@ export default function Dashboard() {
   const { colors } = useTheme();
   const { t, dict } = useI18n();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const tabSpace = useTabSpace();
   const overlay = useOverlay();
   const { setActiveAccount } = useApp();
@@ -60,6 +71,11 @@ export default function Dashboard() {
   const balance = sub ? sub.balance : (view?.balance ?? 0n);
   const cat = sub ? (CATEGORY[sub.category] ?? CATEGORY[4]) : null;
   const locked = !!sub && sub.unlockAt * 1000 > Date.now();
+  // Scale the hero amount and action circles to the screen so nothing overflows on small phones.
+  const amountText = fmtAmount(balance);
+  const usable = Math.min(width, 560) - 40;
+  const amountSize = Math.max(28, Math.min(50, Math.floor((usable - 40) / (amountText.length * 0.64))));
+  const ring = width < 360 ? 56 : width < 400 ? 62 : 68;
 
   return (
     <View style={styles.root} testID="dashboard-screen">
@@ -80,7 +96,7 @@ export default function Dashboard() {
               ) : null}
             </View>
           </PressableScale>
-          <CircleButton testID="notifications-button" icon="bell" label={t("sheets.notifTitle")} onPress={() => overlay.open("notifications")} badge={recent} />
+          <CircleButton testID="notifications-button" icon="bell" size={44} label={t("sheets.notifTitle")} onPress={() => overlay.open("notifications")} badge={recent} />
         </View>
       </View>
 
@@ -109,9 +125,9 @@ export default function Dashboard() {
             ) : null}
             <Animated.View entering={FadeInDown.duration(500)} style={styles.balance}>
               <View style={[styles.amountRow, dirStyle("ltr")]} {...webDir("ltr")}>
-                <Text style={styles.currency}>$</Text>
-                <Text style={styles.amount} testID="total-balance" adjustsFontSizeToFit numberOfLines={1}>
-                  {fmtAmount(balance)}
+                <Text style={[styles.currency, { fontSize: Math.round(amountSize * 0.56), marginTop: Math.round(amountSize * 0.12) }]}>$</Text>
+                <Text style={[styles.amount, { fontSize: amountSize, lineHeight: Math.round(amountSize * 1.16) }]} testID="total-balance" numberOfLines={1}>
+                  {amountText}
                 </Text>
               </View>
               <Text style={styles.caption}>{sub ? t("home.subBalance") : t("home.total")}</Text>
@@ -168,7 +184,7 @@ export default function Dashboard() {
 
             <Animated.View entering={FadeInDown.delay(120).duration(500)} style={styles.actions}>
               {actions.map((a) => (
-                <ActionButton key={a.key} testID={`action-${a.key}-button`} icon={a.icon} label={a.label} onPress={() => overlay.open(a.sheet)} />
+                <ActionButton key={a.key} testID={`action-${a.key}-button`} icon={a.icon} label={a.label} ring={ring} onPress={() => overlay.open(a.sheet)} />
               ))}
             </Animated.View>
 
@@ -202,14 +218,14 @@ export default function Dashboard() {
 
 const useStyles = makeStyles((c) => ({
   root: { flex: 1, backgroundColor: c.canvas },
-  header: { paddingHorizontal: 24, paddingBottom: 4, width: "100%", maxWidth: 560, alignSelf: "center" },
-  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  profile: { flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 1 },
+  header: { paddingHorizontal: 20, paddingBottom: 4, width: "100%", maxWidth: 560, alignSelf: "center" },
+  topRow: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  profile: { flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 1, minHeight: 48 },
   helloBox: { flexShrink: 1 },
-  hello: { color: c.onSurface, fontSize: 16, fontWeight: "500", letterSpacing: -0.2 },
-  subTag: { color: c.accentBlue, fontSize: 11, fontWeight: "600", marginTop: 2 },
+  hello: { color: c.textStrong, fontSize: 17, fontWeight: "700" },
+  subTag: { color: c.accentBlue, fontSize: 12, fontWeight: "600", marginTop: 2 },
   state: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16, paddingHorizontal: 24 },
-  stateText: { color: c.muted, fontSize: 14 },
+  stateText: { color: c.muted, fontSize: 14, textAlign: "center" },
   scroll: { flexGrow: 1 },
   content: { width: "100%", maxWidth: 560, alignSelf: "center", paddingHorizontal: 20 },
   backChip: {
@@ -217,58 +233,50 @@ const useStyles = makeStyles((c) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginTop: 12,
-    paddingHorizontal: 12,
-    height: 30,
-    borderRadius: 15,
+    marginTop: 14,
+    paddingHorizontal: 14,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: c.brandTertiary,
     borderWidth: 1,
     borderColor: c.blueBorder,
   },
-  backChipText: { color: c.accentBlue, fontSize: 12, fontWeight: "600" },
-  balance: { alignItems: "center", paddingTop: 28, paddingBottom: 4 },
+  backChipText: { color: c.accentBlue, fontSize: 12, fontWeight: "700" },
+  balance: { alignItems: "center", paddingTop: 30, paddingBottom: 4 },
   amountRow: { flexDirection: "row", alignItems: "flex-start", gap: 6 },
-  currency: { color: c.white70, fontSize: 30, fontWeight: "600", marginTop: 4 },
-  amount: { color: c.textStrong, fontSize: 44, fontWeight: "600", letterSpacing: 0.5, fontVariant: ["tabular-nums"] },
-  caption: { color: c.muted, fontSize: 12, fontWeight: "500", marginTop: 8, letterSpacing: 0.3 },
-  subInfo: { width: "70%", alignItems: "center", gap: 8, marginTop: 14 },
-  subInfoText: { color: c.muted, fontSize: 12 },
-  lockPill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, height: 26, borderRadius: 13, backgroundColor: c.amberSoft },
-  lockText: { color: c.accentAmber, fontSize: 11, fontWeight: "700" },
-  pills: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 14 },
-  pill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, height: 26, borderRadius: 13, backgroundColor: c.glassSubtle, borderWidth: 1, borderColor: c.border },
-  pillDot: { width: 6, height: 6, borderRadius: 3 },
-  pillText: { color: c.textSoft, fontSize: 11, fontWeight: "500", fontVariant: ["tabular-nums"] },
-  banner: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 20, padding: 14, borderRadius: 16, backgroundColor: c.amberSoft, borderWidth: 1, borderColor: c.border },
-  bannerText: { flex: 1, color: c.onSurfaceSecondary, fontSize: 13 },
+  currency: { color: c.white70, fontSize: 28, fontFamily: fonts.display, marginTop: 6 },
+  amount: { color: c.textStrong, fontSize: 50, lineHeight: 58, fontFamily: fonts.display, letterSpacing: -1, fontVariant: ["tabular-nums"] },
+  caption: { color: c.muted, fontSize: 13, fontWeight: "600", marginTop: 6, textAlign: "center" },
+  subInfo: { width: "72%", alignItems: "center", gap: 8, marginTop: 16 },
+  subInfoText: { color: c.muted, fontSize: 12, textAlign: "center" },
+  lockPill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 28, borderRadius: 14, backgroundColor: c.amberSoft },
+  lockText: { color: c.accentAmber, fontSize: 12, fontWeight: "700" },
+  pills: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 16, paddingHorizontal: 4 },
+  pill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 30, borderRadius: 15, backgroundColor: c.glassSubtle, borderWidth: 1, borderColor: c.white10 },
+  pillDot: { width: 7, height: 7, borderRadius: 4 },
+  pillText: { color: c.textSoft, fontSize: 12, fontWeight: "500", fontVariant: ["tabular-nums"] },
+  banner: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 22, padding: 16, borderRadius: 20, backgroundColor: c.amberSoft, borderWidth: 1, borderColor: c.border },
+  bannerText: { flex: 1, color: c.onSurfaceSecondary, fontSize: 13, lineHeight: 19 },
   bannerCta: { color: c.accentAmber, fontSize: 13, fontWeight: "700" },
-  pending: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 20, padding: 12, borderRadius: 16, backgroundColor: c.blueSoft },
-  pendingText: { flex: 1, color: c.accentCyanSoft, fontSize: 12, fontWeight: "500" },
-  actions: { flexDirection: "row", justifyContent: "space-around", marginTop: 28, paddingHorizontal: 8 },
-  action: { alignItems: "center", gap: 8 },
+  pending: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 22, padding: 14, borderRadius: 18, backgroundColor: c.blueSoft, borderWidth: 1, borderColor: c.blueBorder },
+  pendingText: { flex: 1, color: c.accentCyanSoft, fontSize: 13, fontWeight: "500" },
+  actions: { flexDirection: "row", justifyContent: "space-between", gap: 8, marginTop: 30 },
+  action: { flex: 1, maxWidth: 120, alignItems: "center", gap: 10, minWidth: 0 },
+  actionRing: { padding: 1.5 },
   actionBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: c.glassStrong,
-    borderWidth: 1,
-    borderColor: c.border,
-    borderTopColor: c.glassHighlight,
-    shadowColor: c.canvas,
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
+    backgroundColor: c.surfaceSecondary,
   },
-  actionLabel: { color: c.textSoft, fontSize: 12, fontWeight: "500" },
-  section: { marginTop: 28, gap: 12 },
+  actionLabel: { color: c.textSoft, fontSize: 13, fontWeight: "600", textAlign: "center" },
+  section: { marginTop: 32, gap: 12 },
   sectionHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 4 },
-  sectionTitle: { color: c.textStrong, fontSize: 14, fontWeight: "600" },
-  viewAll: { height: 32, justifyContent: "center", paddingHorizontal: 4 },
-  viewAllText: { color: c.muted, fontSize: 12 },
+  sectionTitle: { color: c.textStrong, fontSize: 17, fontWeight: "700" },
+  viewAll: { height: 36, justifyContent: "center", paddingHorizontal: 10, borderRadius: 18, backgroundColor: c.glassSubtle },
+  viewAllText: { color: c.accentBlue, fontSize: 13, fontWeight: "700" },
   list: { gap: 10 },
-  empty: { alignItems: "center", gap: 6, padding: 24, borderRadius: 16, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border },
-  emptyTitle: { color: c.textStrong, fontSize: 14, fontWeight: "600", marginTop: 4 },
-  emptySub: { color: c.muted, fontSize: 12, textAlign: "center" },
+  empty: { alignItems: "center", gap: 8, padding: 28, borderRadius: 22, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border },
+  emptyTitle: { color: c.textStrong, fontSize: 15, fontWeight: "700", marginTop: 4, textAlign: "center" },
+  emptySub: { color: c.muted, fontSize: 13, lineHeight: 19, textAlign: "center" },
 }));

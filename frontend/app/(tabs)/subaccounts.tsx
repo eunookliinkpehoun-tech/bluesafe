@@ -17,7 +17,7 @@ import type { SubAccount } from "@/src/lib/chain";
 import { fmtAmount, fmtUsd, pct } from "@/src/lib/format";
 import { useApp } from "@/src/state/app";
 import { useOverlay } from "@/src/state/overlay";
-import { makeStyles, useTheme } from "@/src/theme";
+import { fonts, makeStyles, useTheme } from "@/src/theme";
 
 function SubCard({ s, index, onPress }: { s: SubAccount; index: number; onPress: () => void }) {
   const styles = useStyles();
@@ -185,7 +185,7 @@ const useStyles = makeStyles((c) => ({
   totalGlow: { position: "absolute", top: -48, end: -48, width: 130, height: 130, borderRadius: 65, backgroundColor: c.blueSoft },
   upper: { color: c.muted, fontSize: 11, fontWeight: "600", letterSpacing: 1, textTransform: "uppercase" },
   totalRow: { flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 8, marginBottom: 16 },
-  totalValue: { color: c.textStrong, fontSize: 30, fontWeight: "800", letterSpacing: -0.5, fontVariant: ["tabular-nums"] },
+  totalValue: { color: c.textStrong, fontSize: 34, fontFamily: fonts.display, letterSpacing: -0.5, fontVariant: ["tabular-nums"] },
   totalUnit: { color: c.muted, fontSize: 12 },
   bar: { height: 8, flexDirection: "row", gap: 2, padding: 1, borderRadius: 4, backgroundColor: c.track, overflow: "hidden" },
   barEmpty: { flex: 1 },
@@ -194,16 +194,16 @@ const useStyles = makeStyles((c) => ({
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
   legendText: { color: c.muted, fontSize: 11 },
-  sticky: { backgroundColor: c.canvas, width: "100%", maxWidth: 560, alignSelf: "center" },
+  sticky: { backgroundColor: c.stickyBar, width: "100%", maxWidth: 560, alignSelf: "center" },
   list: { gap: 14 },
-  card: { padding: 16, borderRadius: 18, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight },
+  card: { padding: 16, borderRadius: 22, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight },
   cardTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
   cardLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 },
   cardText: { flex: 1, minWidth: 0 },
-  cardName: { color: c.textStrong, fontSize: 14, fontWeight: "600" },
+  cardName: { color: c.textStrong, fontSize: 15, fontWeight: "700" },
   cardSub: { fontSize: 11, fontWeight: "500", marginTop: 3, opacity: 0.85 },
   cardRight: { alignItems: "flex-end", gap: 3 },
-  cardAmount: { color: c.textStrong, fontSize: 14, fontWeight: "800", fontVariant: ["tabular-nums"] },
+  cardAmount: { color: c.textStrong, fontSize: 15, fontFamily: fonts.display, fontVariant: ["tabular-nums"] },
   cardOf: { color: c.muted, fontSize: 11 },
   status: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 6, height: 20, borderRadius: 6, backgroundColor: c.emeraldSoft },
   statusLocked: { backgroundColor: c.amberSoft },

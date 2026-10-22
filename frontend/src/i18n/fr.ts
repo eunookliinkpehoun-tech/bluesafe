@@ -50,6 +50,7 @@ export const fr: Dict = {
     warning1: "Ne la partagez jamais. Tirelire ne vous la demandera jamais.",
     warning2: "Si vous la perdez, personne ne pourra récupérer vos fonds.",
     confirmCheck: "J'ai noté ma phrase secrète",
+    step: "Étape {{n}} sur {{total}}",
     verifyTitle: "Vérifiez votre phrase",
     verifySubtitle: "Sélectionnez le bon mot pour chaque position.",
     word: "Mot n°{{n}}",
@@ -64,6 +65,7 @@ export const fr: Dict = {
     words: "{{n}} mots",
     invalid: "Cette phrase secrète n'est pas valide",
     restoring: "Restauration…",
+    secure: "Votre phrase est traitée uniquement sur cet appareil. Elle ne quitte jamais votre téléphone.",
   },
   pin: {
     create: "Créez votre code PIN",
@@ -126,7 +128,14 @@ export const fr: Dict = {
     activateNow: "Activer",
   },
   nav: { home: "Accueil", history: "Historique", team: "Équipe", plus: "Actions rapides" },
-  plus: { addAccount: "Nouveau compte", deposit: "Dépôt", withdraw: "Retrait" },
+  plus: {
+    addAccount: "Nouveau compte",
+    addAccountSub: "Créer une poche d'épargne",
+    deposit: "Dépôt",
+    depositSub: "Recevoir des USDT sur BNB Chain",
+    withdraw: "Retrait",
+    withdrawSub: "Envoyer vers un wallet BEP20",
+  },
   history: {
     title: "Historique",
     month: "Activité du mois ({{month}})",

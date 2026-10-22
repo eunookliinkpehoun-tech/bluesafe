@@ -46,26 +46,26 @@ export function ChipRow<K extends string | number>({
 }
 
 const useStyles = makeStyles((c) => ({
-  row: { height: 56, flexGrow: 0 },
+  row: { height: 60, flexGrow: 0 },
   content: { alignItems: "center", gap: 8, paddingHorizontal: 20 },
   chip: {
-    height: 36,
+    height: 38,
     flexShrink: 0,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+    paddingHorizontal: 18,
+    borderRadius: 19,
     justifyContent: "center",
     backgroundColor: c.glassSubtle,
     borderWidth: 1,
     borderColor: c.border,
   },
   chipActive: {
-    backgroundColor: c.brandTertiary,
-    borderColor: c.borderStrong,
+    backgroundColor: c.brandSecondary,
+    borderColor: c.accentBlue,
     shadowColor: c.brandPrimary,
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.4,
     shadowRadius: 12,
-    shadowOffset: { width: 0, height: 0 },
+    shadowOffset: { width: 0, height: 4 },
   },
-  label: { color: c.textSoft, fontSize: 12, fontWeight: "600" },
-  labelActive: { color: c.textStrong },
+  label: { color: c.textSoft, fontSize: 13, fontWeight: "600", textAlign: "center" },
+  labelActive: { color: c.onBrandPrimary },
 }));

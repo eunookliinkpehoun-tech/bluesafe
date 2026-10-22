@@ -1,5 +1,7 @@
 import * as Clipboard from "expo-clipboard";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useMemo } from "react";
 import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Animated, { FadeIn, FadeOut, SlideInLeft, SlideInRight, SlideOutLeft, SlideOutRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,7 +12,7 @@ import { fmtUsd, pct, shortAddr } from "@/src/lib/format";
 import { CATEGORY } from "@/src/lib/categories";
 import { useApp } from "@/src/state/app";
 import { useOverlay } from "@/src/state/overlay";
-import { makeStyles, useTheme } from "@/src/theme";
+import { fonts, makeStyles, useTheme } from "@/src/theme";
 import { Avatar } from "./Avatar";
 import { Icon, type IconName } from "./Icon";
 import { PressableScale } from "./PressableScale";
@@ -41,6 +43,9 @@ export function Drawer() {
   const demo = status === "demo";
   const panelWidth = Math.min(340, width * 0.86);
   const closeDrawer = () => setDrawerOpen(false);
+  // Build layout animations once per direction: new builder objects on every render make Reanimated re-run them.
+  const entering = useMemo(() => (isRTL ? SlideInRight : SlideInLeft).springify().damping(22).stiffness(200), [isRTL]);
+  const exiting = useMemo(() => (isRTL ? SlideOutRight : SlideOutLeft).duration(220), [isRTL]);
 
   const pick = (a: "main" | number) => {
     setActiveAccount(a);
@@ -54,13 +59,13 @@ export function Drawer() {
         <Pressable testID="drawer-backdrop" style={styles.fill} onPress={closeDrawer} />
       </Animated.View>
       <Animated.View
-        entering={(isRTL ? SlideInRight : SlideInLeft).springify().damping(22).stiffness(200)}
-        exiting={(isRTL ? SlideOutRight : SlideOutLeft).duration(220)}
+        entering={entering}
+        exiting={exiting}
         testID="accounts-drawer"
         style={[styles.panel, { width: panelWidth, paddingTop: insets.top + 16 }]}
       >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
-          <View style={styles.head}>
+          <LinearGradient colors={[colors.glowDeep, colors.glassStrong]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.head}>
             <Avatar seed={view?.owner ?? "tirelire"} size={56} />
             <View style={styles.headText}>
               <Text style={styles.name} numberOfLines={1} testID="drawer-name">
@@ -68,19 +73,30 @@ export function Drawer() {
               </Text>
               <PressableScale testID="drawer-copy-address" onPress={() => view && Clipboard.setStringAsync(view.vault)} style={styles.addr}>
                 <Text style={styles.addrText}>{shortAddr(view?.vault)}</Text>
-                <Icon name="copy" size={12} color={colors.muted} />
+                <Icon name="copy" size={12} color={colors.textSoft} />
               </PressableScale>
+              {demo ? (
+                <View style={styles.demoTag}>
+                  <Text style={styles.demoTagText}>{t("common.demo")}</Text>
+                </View>
+              ) : null}
             </View>
-          </View>
+          </LinearGradient>
 
           <SectionLabel>{t("drawer.accounts")}</SectionLabel>
           <PressableScale testID="drawer-account-main" onPress={() => pick("main")} scaleTo={0.98} style={[styles.account, activeAccount === "main" && styles.accountActive]}>
-            <IconTile icon="vault" highlight size={40} />
+            <IconTile icon="vault" highlight size={36} />
             <View style={styles.accText}>
-              <Text style={styles.accName}>{t("drawer.main")}</Text>
-              <Text style={styles.accMeta}>{shortAddr(view?.vault)}</Text>
+              <Text style={styles.accName} numberOfLines={1}>
+                {t("drawer.main")}
+              </Text>
+              <Text style={styles.accMeta} numberOfLines={1}>
+                {shortAddr(view?.vault)}
+              </Text>
             </View>
-            <Text style={styles.accAmount}>{fmtUsd(view?.balance ?? 0n)}</Text>
+            <Text style={styles.accAmount} numberOfLines={1}>
+              {fmtUsd(view?.balance ?? 0n)}
+            </Text>
           </PressableScale>
           {view?.subs.map((s) => {
             const cat = CATEGORY[s.category] ?? CATEGORY[4];
@@ -92,16 +108,18 @@ export function Drawer() {
                 scaleTo={0.98}
                 style={[styles.account, activeAccount === s.id && styles.accountActive]}
               >
-                <IconTile icon={cat.icon} tint={colors[cat.color] as string} size={40} />
+                <IconTile icon={cat.icon} tint={colors[cat.color] as string} size={36} />
                 <View style={styles.accText}>
                   <Text style={styles.accName} numberOfLines={1}>
                     {s.name}
                   </Text>
-                  <Text style={styles.accMeta}>
+                  <Text style={styles.accMeta} numberOfLines={1}>
                     {s.target > 0n ? `${Math.round(pct(s.balance, s.target))}%` : t(`subs.c${s.category}`)}
                   </Text>
                 </View>
-                <Text style={styles.accAmount}>{fmtUsd(s.balance)}</Text>
+                <Text style={styles.accAmount} numberOfLines={1}>
+                  {fmtUsd(s.balance)}
+                </Text>
               </PressableScale>
             );
           })}
@@ -120,8 +138,10 @@ export function Drawer() {
 
           <SectionLabel>{t("drawer.settings")}</SectionLabel>
           <View style={styles.langRow}>
-            <Icon name="globe" size={20} color={colors.textSoft} strokeWidth={1.8} />
-            <Text style={styles.rowLabel}>{t("drawer.language")}</Text>
+            <View style={styles.langHead}>
+              <Icon name="globe" size={20} color={colors.textSoft} strokeWidth={1.8} />
+              <Text style={styles.rowLabel}>{t("drawer.language")}</Text>
+            </View>
             <View style={styles.langs}>
               {LANGS.map((l) => (
                 <PressableScale
@@ -172,46 +192,57 @@ const useStyles = makeStyles((c) => ({
     shadowOffset: { width: 0, height: 0 },
     elevation: 24,
   },
-  content: { paddingHorizontal: 16, gap: 10 },
-  head: { flexDirection: "row", alignItems: "center", gap: 12, paddingBottom: 16, marginBottom: 4, borderBottomWidth: 1, borderBottomColor: c.divider },
+  content: { paddingHorizontal: 12, gap: 10 },
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 16,
+    marginBottom: 10,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: c.white10,
+    borderTopColor: c.glassHighlight,
+  },
   headText: { flex: 1, gap: 4 },
-  name: { color: c.textStrong, fontSize: 18, fontWeight: "700" },
+  name: { color: c.textStrong, fontSize: 19, fontWeight: "700" },
   addr: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingVertical: 4 },
-  addrText: { color: c.muted, fontSize: 12, fontVariant: ["tabular-nums"] },
+  addrText: { color: c.textSoft, fontSize: 12, fontFamily: "monospace" },
+  demoTag: { alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: c.amberSoft },
+  demoTagText: { color: c.accentAmber, fontSize: 9, fontWeight: "800", letterSpacing: 0.8 },
   account: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     padding: 10,
-    borderRadius: 16,
+    minHeight: 60,
+    borderRadius: 18,
     backgroundColor: c.glassSubtle,
     borderWidth: 1,
     borderColor: c.border,
   },
   accountActive: { backgroundColor: c.brandTertiary, borderColor: c.borderStrong },
   accText: { flex: 1, minWidth: 0 },
-  accName: { color: c.textStrong, fontSize: 14, fontWeight: "600" },
-  accMeta: { color: c.muted, fontSize: 11, marginTop: 2 },
-  accAmount: { color: c.onSurface, fontSize: 13, fontWeight: "700", fontVariant: ["tabular-nums"] },
-  group: { borderRadius: 16, backgroundColor: c.glassSubtle, borderWidth: 1, borderColor: c.border, paddingVertical: 4, marginBottom: 8 },
-  row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, minHeight: 48 },
-  rowLabel: { flex: 1, color: c.onSurfaceSecondary, fontSize: 14, fontWeight: "500" },
+  accName: { color: c.textStrong, fontSize: 14, fontWeight: "700" },
+  accMeta: { color: c.muted, fontSize: 12, marginTop: 2 },
+  accAmount: { flexShrink: 0, maxWidth: "45%", color: c.onSurface, fontSize: 13, fontFamily: fonts.display, fontVariant: ["tabular-nums"] },
+  group: { borderRadius: 18, backgroundColor: c.glassSubtle, borderWidth: 1, borderColor: c.border, paddingVertical: 4, marginBottom: 8 },
+  row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, minHeight: 52 },
+  rowLabel: { flex: 1, color: c.onSurfaceSecondary, fontSize: 15, fontWeight: "500" },
   danger: { color: c.accentRose },
   langRow: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: 12,
-    paddingHorizontal: 14,
-    minHeight: 56,
-    borderRadius: 16,
+    padding: 14,
+    borderRadius: 18,
     backgroundColor: c.glassSubtle,
     borderWidth: 1,
     borderColor: c.border,
   },
-  langs: { flexDirection: "row", gap: 4 },
-  lang: { height: 32, minWidth: 40, paddingHorizontal: 8, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: c.border },
-  langActive: { backgroundColor: c.brandTertiary, borderColor: c.borderStrong },
+  langHead: { flexDirection: "row", alignItems: "center", gap: 12 },
+  langs: { flexDirection: "row", gap: 2, padding: 3, borderRadius: 12, backgroundColor: c.track, borderWidth: 1, borderColor: c.divider },
+  lang: { flex: 1, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  langActive: { backgroundColor: c.brandSecondary },
   langText: { color: c.muted, fontSize: 12, fontWeight: "700" },
-  langTextActive: { color: c.textStrong },
+  langTextActive: { color: c.onBrandPrimary },
   footer: { color: c.textFaint, fontSize: 11, textAlign: "center", marginTop: 8 },
 }));

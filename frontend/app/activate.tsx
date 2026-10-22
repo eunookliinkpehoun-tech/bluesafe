@@ -3,7 +3,7 @@ import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +12,7 @@ import { CosmicBackground } from "@/src/components/CosmicBackground";
 import { Icon, type IconName } from "@/src/components/Icon";
 import { PressableScale } from "@/src/components/PressableScale";
 import { useToast } from "@/src/components/Toast";
-import { PrimaryButton, ProgressBar } from "@/src/components/ui";
+import { PrimaryButton, ProgressBar, TextButton } from "@/src/components/ui";
 import { VaultLogo } from "@/src/components/VaultLogo";
 import { errorMessage, useConfigQuery, useVaultQuery } from "@/src/hooks/useVault";
 import { useI18n } from "@/src/i18n";
@@ -20,7 +20,7 @@ import { activateGasless, isCodeTaken } from "@/src/lib/chain";
 import { fmtAmount, pct } from "@/src/lib/format";
 import { generateReferralCode } from "@/src/lib/wallet";
 import { useApp, type Profile } from "@/src/state/app";
-import { makeStyles, useTheme } from "@/src/theme";
+import { dirStyle, fonts, makeStyles, useTheme, webDir } from "@/src/theme";
 
 /** Lifetime activation payment page: deposit 50 USDT to the predicted vault address, then deploy. */
 export default function Activate() {
@@ -30,7 +30,7 @@ export default function Activate() {
   const toast = useToast();
   const qc = useQueryClient();
   const insets = useSafeAreaInsets();
-  const { status, getProfile, saveProfile, getPrivateKey, signOut } = useApp();
+  const { getProfile, saveProfile, getPrivateKey, signOut } = useApp();
   const { data: cfg } = useConfigQuery();
   const vq = useVaultQuery();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -39,10 +39,6 @@ export default function Activate() {
   useEffect(() => {
     getProfile().then((p) => (p.name ? setProfile(p) : router.replace("/setup")));
   }, [getProfile]);
-
-  useEffect(() => {
-    if (status === "none") router.replace("/welcome");
-  }, [status]);
 
   useEffect(() => {
     if (vq.data?.deployed && stage === "idle") router.replace("/(tabs)");
@@ -102,14 +98,17 @@ export default function Activate() {
       >
         <View style={styles.content}>
           <View style={styles.head}>
-            <VaultLogo size={56} />
+            <View style={styles.logoBox}>
+              <View style={styles.logoGlow} />
+              <VaultLogo size={60} />
+            </View>
             <Text style={styles.title}>{t("activate.title")}</Text>
             <Text style={styles.subtitle}>{t("activate.subtitle")}</Text>
           </View>
 
           <LinearGradient colors={[colors.brandSecondary, colors.accentIndigo, colors.accentSky]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.priceBorder}>
             <View style={styles.priceCard}>
-              <View style={styles.priceRow}>
+              <View style={[styles.priceRow, dirStyle("ltr")]} {...webDir("ltr")}>
                 <Text style={styles.price} testID="activate-price">
                   {priceLabel}
                 </Text>
@@ -119,7 +118,9 @@ export default function Activate() {
               <View style={styles.features}>
                 {features.map((f) => (
                   <View key={f.icon} style={styles.feature}>
-                    <Icon name={f.icon} size={18} color={colors.accentCyan} />
+                    <View style={styles.featureIcon}>
+                      <Icon name={f.icon} size={16} color={colors.accentCyan} />
+                    </View>
                     <Text style={styles.featureText}>{f.label}</Text>
                   </View>
                 ))}
@@ -138,7 +139,7 @@ export default function Activate() {
             {vq.data ? (
               <>
                 <View style={styles.qr} testID="activate-qr">
-                  <QRCode value={vq.data.vault} size={156} backgroundColor={colors.qrBackground} color={colors.qrForeground} />
+                  <QRCode value={vq.data.vault} size={168} backgroundColor={colors.qrBackground} color={colors.qrForeground} />
                 </View>
                 <PressableScale
                   testID="activate-copy-address"
@@ -152,11 +153,13 @@ export default function Activate() {
                   <Text selectable style={styles.addrText} testID="activate-address">
                     {vq.data.vault}
                   </Text>
-                  <Icon name="copy" size={16} color={colors.accentBlue} />
+                  <View style={styles.copyBtn}>
+                    <Icon name="copy" size={16} color={colors.accentBlue} />
+                  </View>
                 </PressableScale>
               </>
             ) : (
-              <Text style={styles.waiting}>{t("common.loading")}</Text>
+              <ActivityIndicator color={colors.accentSky} style={styles.loader} />
             )}
             <View style={styles.progressHead}>
               <Text style={styles.received}>{t("activate.received")}</Text>
@@ -164,10 +167,13 @@ export default function Activate() {
                 {fmtAmount(balance)} / {priceLabel} USDT
               </Text>
             </View>
-            <ProgressBar value={pct(balance, price)} colorsFrom={[colors.brandPrimary, colors.accentEmerald]} />
-            <Text style={[styles.waiting, funded && styles.funded]} testID="activate-status">
-              {funded ? t("activate.funded") : t("activate.waiting")}
-            </Text>
+            <ProgressBar value={pct(balance, price)} colorsFrom={[colors.brandPrimary, colors.accentEmerald]} height={8} />
+            <View style={[styles.statusPill, funded && styles.statusPillOk]}>
+              {funded ? <Icon name="checkCircle" size={14} color={colors.accentEmerald} /> : <ActivityIndicator size="small" color={colors.accentAmber} />}
+              <Text style={[styles.statusText, funded && styles.funded]} testID="activate-status">
+                {funded ? t("activate.funded") : t("activate.waiting")}
+              </Text>
+            </View>
             <Text style={styles.extra}>{t("activate.extra", { price: priceLabel })}</Text>
           </View>
 
@@ -179,9 +185,7 @@ export default function Activate() {
             disabled={!funded || !profile}
             onPress={activate}
           />
-          <PressableScale testID="activate-signout-button" onPress={signOut} style={styles.signout}>
-            <Text style={styles.signoutText}>{t("activate.signOut")}</Text>
-          </PressableScale>
+          <TextButton testID="activate-signout-button" tone="muted" icon="logout" label={t("activate.signOut")} onPress={signOut} />
         </View>
       </ScrollView>
     </View>
@@ -191,35 +195,59 @@ export default function Activate() {
 const useStyles = makeStyles((c) => ({
   root: { flex: 1, backgroundColor: c.canvas },
   scroll: { flexGrow: 1 },
-  content: { width: "100%", maxWidth: 520, alignSelf: "center", paddingHorizontal: 20, gap: 16 },
+  content: { width: "100%", maxWidth: 520, alignSelf: "center", paddingHorizontal: 20, gap: 18 },
   head: { alignItems: "center", gap: 6 },
-  title: { color: c.textStrong, fontSize: 26, fontWeight: "800", marginTop: 6, textAlign: "center" },
-  subtitle: { color: c.muted, fontSize: 14 },
-  priceBorder: { borderRadius: 26, padding: 1.5 },
-  priceCard: { borderRadius: 25, padding: 20, backgroundColor: c.sheet, gap: 6 },
+  logoBox: { width: 84, height: 84, alignItems: "center", justifyContent: "center" },
+  logoGlow: {
+    position: "absolute",
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: c.blueSoft,
+    shadowColor: c.brandPrimary,
+    shadowOpacity: 0.9,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  title: { color: c.textStrong, fontSize: 28, fontWeight: "900", marginTop: 4, textAlign: "center" },
+  subtitle: { color: c.textSoft, fontSize: 15, textAlign: "center" },
+  priceBorder: { borderRadius: 28, padding: 1.5 },
+  priceCard: { borderRadius: 27, padding: 22, backgroundColor: c.sheet, gap: 6, alignItems: "center" },
   priceRow: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
-  price: { color: c.textStrong, fontSize: 48, fontWeight: "800", letterSpacing: -1 },
-  priceUnit: { color: c.accentEmerald, fontSize: 18, fontWeight: "800", marginBottom: 10 },
-  once: { color: c.muted, fontSize: 13, fontWeight: "500" },
-  features: { gap: 10, marginTop: 12 },
-  feature: { flexDirection: "row", alignItems: "center", gap: 10 },
-  featureText: { flex: 1, color: c.onSurfaceSecondary, fontSize: 14 },
-  sponsor: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12, alignSelf: "flex-start", paddingHorizontal: 10, height: 28, borderRadius: 14, backgroundColor: c.emeraldSoft },
+  price: { color: c.textStrong, fontSize: 56, lineHeight: 62, fontFamily: fonts.display, letterSpacing: -1 },
+  priceUnit: { color: c.accentEmerald, fontSize: 20, fontFamily: fonts.display, marginBottom: 10 },
+  once: { color: c.muted, fontSize: 13, fontWeight: "600", textAlign: "center" },
+  features: { gap: 12, marginTop: 16, alignSelf: "stretch" },
+  feature: { flexDirection: "row", alignItems: "center", gap: 12 },
+  featureIcon: { width: 32, height: 32, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: c.blueSoft },
+  featureText: { flex: 1, color: c.onSurfaceSecondary, fontSize: 14, fontWeight: "500" },
+  sponsor: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14, paddingHorizontal: 12, height: 30, borderRadius: 15, backgroundColor: c.emeraldSoft },
   sponsorText: { color: c.accentEmerald, fontSize: 12, fontWeight: "700" },
-  card: { padding: 18, borderRadius: 24, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight, gap: 14 },
-  step: { color: c.textStrong, fontSize: 14, fontWeight: "600", lineHeight: 20, textAlign: "center" },
-  qr: { alignSelf: "center", padding: 12, borderRadius: 20, backgroundColor: c.qrBackground },
-  addr: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, backgroundColor: c.glassInput, borderWidth: 1, borderColor: c.white10 },
-  addrText: { flex: 1, color: c.textStrong, fontSize: 12, fontFamily: "monospace" },
+  card: { padding: 20, borderRadius: 28, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight, gap: 16 },
+  step: { color: c.textStrong, fontSize: 15, fontWeight: "700", lineHeight: 22, textAlign: "center" },
+  qr: {
+    alignSelf: "center",
+    padding: 14,
+    borderRadius: 24,
+    backgroundColor: c.qrBackground,
+    shadowColor: c.brandPrimary,
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  loader: { marginVertical: 40 },
+  addr: { flexDirection: "row", alignItems: "center", gap: 10, paddingStart: 14, paddingEnd: 6, paddingVertical: 6, borderRadius: 16, backgroundColor: c.glassInput, borderWidth: 1, borderColor: c.white10 },
+  addrText: { flex: 1, color: c.textStrong, fontSize: 12, lineHeight: 18, fontFamily: "monospace", wordBreak: "break-all" } as any,
+  copyBtn: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: c.brandTertiary },
   progressHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  received: { color: c.muted, fontSize: 12, fontWeight: "600" },
-  receivedValue: { color: c.textStrong, fontSize: 13, fontWeight: "700", fontVariant: ["tabular-nums"] },
-  waiting: { color: c.muted, fontSize: 13, textAlign: "center" },
+  received: { color: c.muted, fontSize: 13, fontWeight: "600" },
+  receivedValue: { color: c.textStrong, fontSize: 14, fontFamily: fonts.display, fontVariant: ["tabular-nums"] },
+  statusPill: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, alignSelf: "center", paddingHorizontal: 14, height: 34, borderRadius: 17, backgroundColor: c.amberSoft },
+  statusPillOk: { backgroundColor: c.emeraldSoft },
+  statusText: { color: c.accentAmber, fontSize: 13, fontWeight: "600", textAlign: "center" },
   funded: { color: c.accentEmerald, fontWeight: "700" },
-  extra: { color: c.textFaint, fontSize: 11, textAlign: "center" },
-  signout: { alignSelf: "center", height: 44, justifyContent: "center", paddingHorizontal: 16 },
-  signoutText: { color: c.muted, fontSize: 13, fontWeight: "500" },
+  extra: { color: c.textFaint, fontSize: 12, lineHeight: 17, textAlign: "center" },
   doneBox: { alignItems: "center", justifyContent: "center", gap: 18 },
-  doneIcon: { width: 110, height: 110, borderRadius: 55, alignItems: "center", justifyContent: "center", backgroundColor: c.emeraldSoft, borderWidth: 1, borderColor: c.emeraldBorder },
-  doneText: { color: c.textStrong, fontSize: 26, fontWeight: "800" },
+  doneIcon: { width: 112, height: 112, borderRadius: 56, alignItems: "center", justifyContent: "center", backgroundColor: c.emeraldSoft, borderWidth: 1, borderColor: c.emeraldBorder },
+  doneText: { color: c.textStrong, fontSize: 26, fontWeight: "800", textAlign: "center" },
 }));

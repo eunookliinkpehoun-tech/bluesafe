@@ -64,40 +64,52 @@ export default function Setup() {
           router.replace("/welcome");
         }}
       />
-      <KeyboardAwareScrollView bottomOffset={24} keyboardShouldPersistTaps="handled" contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]}>
+      <KeyboardAwareScrollView
+        bottomOffset={24}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 20 }]}
+      >
         <View style={styles.content}>
-          <View style={styles.avatarBox}>
-            <Avatar seed={address ?? "tirelire"} size={88} />
+          <View style={styles.head}>
+            <View style={styles.avatarBox}>
+              <View style={styles.avatarGlow} />
+              <Avatar seed={address ?? "tirelire"} size={96} />
+            </View>
+            <Text style={styles.subtitle}>{t("setup.subtitle")}</Text>
           </View>
-          <Text style={styles.subtitle}>{t("setup.subtitle")}</Text>
-          <TextField
-            testID="setup-name-input"
-            label={t("setup.nameLabel")}
-            placeholder={t("setup.namePlaceholder")}
-            value={name}
-            onChangeText={setName}
-            maxLength={32}
-          />
-          <TextField
-            testID="setup-referral-input"
-            label={`${t("setup.refLabel")} · ${t("common.optional")}`}
-            placeholder={t("setup.refPlaceholder")}
-            value={code}
-            onChangeText={(v) => setCode(v.toUpperCase())}
-            autoCapitalize="characters"
-            mono
-            hint={checking ? t("setup.refChecking") : ref ? t("setup.refValid", { name: ref.name }) : refInvalid ? t("setup.refInvalid") : undefined}
-            hintTone={checking ? "muted" : ref ? "success" : "error"}
-          />
-          <PrimaryButton
-            testID="setup-continue-button"
-            label={t("common.continue")}
-            disabled={!valid}
-            onPress={async () => {
-              await saveProfile({ name: trimmed, code: generateReferralCode(trimmed), referrer: ref?.owner ?? null, referrerName: ref?.name ?? "" });
-              router.replace("/activate");
-            }}
-          />
+          <View style={styles.card}>
+            <TextField
+              testID="setup-name-input"
+              label={t("setup.nameLabel")}
+              placeholder={t("setup.namePlaceholder")}
+              value={name}
+              onChangeText={setName}
+              maxLength={32}
+            />
+            <TextField
+              testID="setup-referral-input"
+              label={`${t("setup.refLabel")} · ${t("common.optional")}`}
+              placeholder={t("setup.refPlaceholder")}
+              value={code}
+              onChangeText={(v) => setCode(v.toUpperCase())}
+              autoCapitalize="characters"
+              mono
+              hint={checking ? t("setup.refChecking") : ref ? t("setup.refValid", { name: ref.name }) : refInvalid ? t("setup.refInvalid") : undefined}
+              hintTone={checking ? "muted" : ref ? "success" : "error"}
+            />
+          </View>
+          <View style={styles.footer}>
+            <PrimaryButton
+              testID="setup-continue-button"
+              label={t("common.continue")}
+              disabled={!valid}
+              onPress={async () => {
+                await saveProfile({ name: trimmed, code: generateReferralCode(trimmed), referrer: ref?.owner ?? null, referrerName: ref?.name ?? "" });
+                router.replace("/activate");
+              }}
+            />
+          </View>
         </View>
       </KeyboardAwareScrollView>
     </View>
@@ -107,7 +119,21 @@ export default function Setup() {
 const useStyles = makeStyles((c) => ({
   root: { flex: 1, backgroundColor: c.canvas },
   scroll: { flexGrow: 1 },
-  content: { width: "100%", maxWidth: 520, alignSelf: "center", paddingHorizontal: 20, gap: 18 },
-  avatarBox: { alignItems: "center", marginTop: 8 },
-  subtitle: { color: c.muted, fontSize: 14, lineHeight: 21, textAlign: "center" },
+  content: { flex: 1, width: "100%", maxWidth: 520, alignSelf: "center", paddingHorizontal: 20, gap: 20 },
+  head: { alignItems: "center", gap: 16, marginTop: 8 },
+  avatarBox: { width: 120, height: 120, alignItems: "center", justifyContent: "center" },
+  avatarGlow: {
+    position: "absolute",
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: c.blueSoft,
+    shadowColor: c.brandPrimary,
+    shadowOpacity: 0.8,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  subtitle: { color: c.textSoft, fontSize: 15, lineHeight: 22, textAlign: "center", paddingHorizontal: 16 },
+  card: { gap: 18, padding: 18, borderRadius: 24, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight },
+  footer: { marginTop: "auto", paddingTop: 12 },
 }));
