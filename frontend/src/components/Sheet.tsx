@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { KeyboardStickyView } from "react-native-keyboard-controller";
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from "react-native-reanimated";
+import Animated, { Easing, FadeIn, FadeOut, SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useI18n } from "@/src/i18n";
@@ -10,20 +10,33 @@ import { Icon } from "./Icon";
 import { PressableScale } from "./PressableScale";
 
 /** Glass bottom sheet rendered inside the tab layout overlay host (above the nav bar). */
-export function Sheet({ title, onClose, children, testID }: { title: string; onClose: () => void; children: ReactNode; testID: string }) {
+export function Sheet({
+  title,
+  onClose,
+  children,
+  testID,
+  scrollable = true,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  testID: string;
+  /** Off for sheets that host their own scrolling content (wheel pickers). */
+  scrollable?: boolean;
+}) {
   const styles = useStyles();
   const { colors } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   return (
     <View style={styles.host}>
-      <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(180)} style={styles.backdrop}>
+      <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(180)} style={styles.backdrop}>
         <Pressable testID={`${testID}-backdrop`} style={styles.fill} onPress={onClose} />
       </Animated.View>
       <KeyboardStickyView style={styles.sticky} offset={{ opened: insets.bottom }}>
         <Animated.View
-          entering={SlideInDown.springify().damping(20).stiffness(180)}
-          exiting={SlideOutDown.duration(220)}
+          entering={SlideInDown.duration(280).easing(Easing.out(Easing.cubic))}
+          exiting={SlideOutDown.duration(200).easing(Easing.in(Easing.cubic))}
           testID={testID}
           style={[styles.panel, { paddingBottom: insets.bottom + 20 }]}
         >
@@ -36,15 +49,19 @@ export function Sheet({ title, onClose, children, testID }: { title: string; onC
               <Icon name="x" size={18} color={colors.textSoft} />
             </PressableScale>
           </View>
-          <ScrollView
-            bounces={false}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            style={styles.scroll}
-            contentContainerStyle={styles.body}
-          >
-            {children}
-          </ScrollView>
+          {scrollable ? (
+            <ScrollView
+              bounces={false}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              style={styles.scroll}
+              contentContainerStyle={styles.body}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            <View style={styles.body}>{children}</View>
+          )}
         </Animated.View>
       </KeyboardStickyView>
     </View>

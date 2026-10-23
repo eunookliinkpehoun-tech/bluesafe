@@ -8,10 +8,11 @@ import { TextField } from "@/src/components/TextField";
 import { useToast } from "@/src/components/Toast";
 import { PrimaryButton } from "@/src/components/ui";
 import { useVaultAction, useVaultView } from "@/src/hooks/useVault";
-import { useI18n } from "@/src/i18n";
+import { dateLabel, useI18n } from "@/src/i18n";
 import { CATEGORY, CATEGORY_IDS } from "@/src/lib/categories";
 import { parseAmount } from "@/src/lib/format";
 import { makeStyles, useTheme } from "@/src/theme";
+import { DatePickerSheet } from "./DatePickerSheet";
 
 const LOCKS = [
   { key: "none", days: 0, label: "sheets.lockNone" },
@@ -24,7 +25,7 @@ const LOCKS = [
 export function CreateSubSheet({ onClose }: { onClose: () => void }) {
   const styles = useStyles();
   const { colors } = useTheme();
-  const { t } = useI18n();
+  const { t, dict } = useI18n();
   const toast = useToast();
   const { view } = useVaultView();
   const { run, busy } = useVaultAction();
@@ -32,12 +33,16 @@ export function CreateSubSheet({ onClose }: { onClose: () => void }) {
   const [category, setCategory] = useState(0);
   const [target, setTarget] = useState("");
   const [lock, setLock] = useState("none");
+  const [customAt, setCustomAt] = useState<number | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   if (!view) return null;
 
   const targetWei = target.trim() ? parseAmount(target) : 0n;
   const valid = name.trim().length > 0 && name.trim().length <= 48 && targetWei !== null;
+  const custom = lock === "custom" && customAt !== null;
 
   return (
+    <>
     <Sheet title={t("sheets.createTitle")} onClose={onClose} testID="create-sub-sheet">
       <TextField
         testID="create-sub-name-input"
@@ -90,6 +95,12 @@ export function CreateSubSheet({ onClose }: { onClose: () => void }) {
               <Text style={[styles.catText, lock === l.key && { color: colors.textStrong }]}>{t(l.label)}</Text>
             </PressableScale>
           ))}
+          <PressableScale testID="create-sub-lock-custom" onPress={() => setPickerOpen(true)} style={[styles.cat, custom && styles.lockActive]}>
+            <Icon name={custom ? "lock" : "calendar"} size={14} color={custom ? colors.accentBlue : colors.muted} />
+            <Text style={[styles.catText, custom && { color: colors.textStrong }]} testID="create-sub-lock-custom-label">
+              {custom ? dateLabel(customAt ?? 0, dict) : t("sheets.lockCustom")}
+            </Text>
+          </PressableScale>
         </ScrollView>
       </View>
       <PrimaryButton
@@ -100,7 +111,7 @@ export function CreateSubSheet({ onClose }: { onClose: () => void }) {
         disabled={!valid}
         onPress={async () => {
           const days = LOCKS.find((l) => l.key === lock)?.days ?? 0;
-          const unlockAt = days ? BigInt(Math.floor(Date.now() / 1000) + days * 86400) : 0n;
+          const unlockAt = custom ? BigInt(customAt ?? 0) : days ? BigInt(Math.floor(Date.now() / 1000) + days * 86400) : 0n;
           const hash = await run(view.vault, "createSub", [name.trim(), category, targetWei ?? 0n, unlockAt]);
           if (hash) {
             toast.show(t("sheets.created"));
@@ -109,6 +120,18 @@ export function CreateSubSheet({ onClose }: { onClose: () => void }) {
         }}
       />
     </Sheet>
+    {pickerOpen ? (
+      <DatePickerSheet
+        value={customAt}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={(unix) => {
+          setCustomAt(unix);
+          setLock("custom");
+          setPickerOpen(false);
+        }}
+      />
+    ) : null}
+    </>
   );
 }
 

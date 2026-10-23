@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { Linking, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
-import Animated, { FadeIn, FadeOut, SlideInLeft, SlideInRight, SlideOutLeft, SlideOutRight } from "react-native-reanimated";
+import Animated, { Easing, FadeIn, FadeOut, SlideInLeft, SlideInRight, SlideOutLeft, SlideOutRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useConfigQuery, useVaultView } from "@/src/hooks/useVault";
@@ -44,7 +44,7 @@ export function Drawer() {
   const panelWidth = Math.min(340, width * 0.86);
   const closeDrawer = () => setDrawerOpen(false);
   // Build layout animations once per direction: new builder objects on every render make Reanimated re-run them.
-  const entering = useMemo(() => (isRTL ? SlideInRight : SlideInLeft).springify().damping(22).stiffness(200), [isRTL]);
+  const entering = useMemo(() => (isRTL ? SlideInRight : SlideInLeft).duration(260).easing(Easing.out(Easing.cubic)), [isRTL]);
   const exiting = useMemo(() => (isRTL ? SlideOutRight : SlideOutLeft).duration(220), [isRTL]);
 
   const pick = (a: "main" | number) => {

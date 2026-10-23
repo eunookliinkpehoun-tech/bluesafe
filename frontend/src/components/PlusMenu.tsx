@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native";
-import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from "react-native-reanimated";
+import Animated, { Easing, FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useI18n } from "@/src/i18n";
@@ -29,12 +29,12 @@ export function PlusMenu() {
 
   return (
     <View style={styles.host}>
-      <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)} style={styles.backdrop}>
+      <Animated.View entering={FadeIn.duration(140)} exiting={FadeOut.duration(120)} style={styles.backdrop}>
         <Pressable testID="plus-menu-backdrop" style={styles.fill} onPress={() => setPlusOpen(false)} />
       </Animated.View>
       <View pointerEvents="box-none" style={[styles.anchor, { bottom: tabBottom(insets.bottom) + TAB_BAR_HEIGHT + 14 }]}>
         <View pointerEvents="box-none" style={styles.inner}>
-          <Animated.View entering={ZoomIn.springify().damping(16)} exiting={ZoomOut.duration(140)} style={styles.menu} testID="plus-menu">
+          <Animated.View entering={FadeInDown.duration(180).easing(Easing.out(Easing.cubic))} exiting={FadeOut.duration(120)} style={styles.menu} testID="plus-menu">
             <Text style={styles.heading}>{t("nav.plus")}</Text>
             {items.map((it) => (
               <PressableScale key={it.key} testID={`plus-menu-${it.key}`} onPress={() => open(it.sheet)} scaleTo={0.97} style={styles.item}>

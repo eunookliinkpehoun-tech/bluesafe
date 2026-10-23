@@ -1,4 +1,4 @@
-import "react-native-get-random-values";
+import "@/src/polyfills";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";

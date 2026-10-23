@@ -30,7 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       {toast ? (
         <View pointerEvents="none" style={[styles.host, { top: insets.top + 8 }]}>
-          <Animated.View key={toast.id} entering={FadeInUp.springify().damping(18)} exiting={FadeOutUp} testID="toast" style={styles.toast}>
+          <Animated.View key={toast.id} entering={FadeInUp.duration(220)} exiting={FadeOutUp} testID="toast" style={styles.toast}>
             <Icon name={toast.type === "error" ? "alert" : toast.type === "info" ? "sparkles" : "checkCircle"} size={18} color={tint} />
             <Text style={styles.text} testID="toast-message">
               {toast.message}

@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
+import Animated, { Easing, FadeInDown, ZoomIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CosmicBackground } from "@/src/components/CosmicBackground";
@@ -79,7 +79,7 @@ export default function Activate() {
     return (
       <View style={[styles.root, styles.doneBox]} testID="activate-success">
         <CosmicBackground variant="welcome" />
-        <Animated.View entering={ZoomIn.springify().damping(10)} style={styles.doneIcon}>
+        <Animated.View entering={ZoomIn.duration(300).easing(Easing.out(Easing.cubic))} style={styles.doneIcon}>
           <Icon name="check" size={48} color={colors.accentEmerald} strokeWidth={3} />
         </Animated.View>
         <Animated.Text entering={FadeInDown.delay(200)} style={styles.doneText}>

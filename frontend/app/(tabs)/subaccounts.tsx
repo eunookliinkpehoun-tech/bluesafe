@@ -2,76 +2,68 @@ import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChipRow } from "@/src/components/ChipRow";
 import { CosmicBackground } from "@/src/components/CosmicBackground";
-import { useTabSpace } from "@/src/components/FloatingTabBar";
+import { TAB_BAR_HEIGHT, tabBottom, useTabSpace } from "@/src/components/FloatingTabBar";
 import { Icon } from "@/src/components/Icon";
 import { PressableScale } from "@/src/components/PressableScale";
 import { ScreenHeader } from "@/src/components/ScreenHeader";
-import { IconTile, PrimaryButton, ProgressBar } from "@/src/components/ui";
+import { PrimaryButton } from "@/src/components/ui";
 import { useVaultView } from "@/src/hooks/useVault";
 import { dateLabel, useI18n } from "@/src/i18n";
 import { CATEGORY, CATEGORY_IDS } from "@/src/lib/categories";
 import type { SubAccount } from "@/src/lib/chain";
-import { fmtAmount, fmtUsd, pct } from "@/src/lib/format";
+import { fmtAmount, fmtUsd } from "@/src/lib/format";
 import { useApp } from "@/src/state/app";
 import { useOverlay } from "@/src/state/overlay";
 import { fonts, makeStyles, useTheme } from "@/src/theme";
 
-function SubCard({ s, index, onPress }: { s: SubAccount; index: number; onPress: () => void }) {
+function SubRow({ s, index, active, onPress, onMenu }: { s: SubAccount; index: number; active: boolean; onPress: () => void; onMenu: () => void }) {
   const styles = useStyles();
   const { colors } = useTheme();
   const { t, dict } = useI18n();
   const cat = CATEGORY[s.category] ?? CATEGORY[4];
   const tint = colors[cat.color] as string;
   const locked = s.unlockAt * 1000 > Date.now();
-  const progress = pct(s.balance, s.target);
   return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 60).duration(400)}>
-      <PressableScale testID={`sub-card-${s.id}`} onPress={onPress} scaleTo={0.985} style={styles.card}>
-        <View style={styles.cardTop}>
-          <View style={styles.cardLeft}>
-            <IconTile icon={cat.icon} tint={tint} size={44} />
-            <View style={styles.cardText}>
-              <Text style={styles.cardName} numberOfLines={1}>
-                {s.name}
-              </Text>
-              <Text style={[styles.cardSub, { color: tint }]} numberOfLines={1}>
-                {locked ? t("subs.locked", { date: dateLabel(s.unlockAt, dict) }) : t("subs.flexible")}
+    <Animated.View entering={FadeInDown.delay(Math.min(index, 6) * 40).duration(260)}>
+      <PressableScale testID={`sub-card-${s.id}`} onPress={onPress} scaleTo={0.985} style={[styles.row, active && styles.rowActive]}>
+        <View style={[styles.rowIcon, { backgroundColor: `${tint}1F`, borderColor: `${tint}40` }]}>
+          <Icon name={cat.icon} size={20} color={tint} />
+        </View>
+        <View style={styles.rowText}>
+          <Text style={styles.rowName} numberOfLines={1}>
+            {s.name}
+          </Text>
+          <View style={styles.badges}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{t(`subs.c${s.category}`)}</Text>
+            </View>
+            <View style={[styles.badge, locked ? styles.badgeLocked : styles.badgeFree]}>
+              {locked ? <Icon name="lock" size={10} color={colors.accentAmber} /> : null}
+              <Text style={[styles.badgeText, locked ? styles.badgeTextLocked : styles.badgeTextFree]}>
+                {locked ? t("subs.locked", { date: dateLabel(s.unlockAt, dict) }) : t("subs.noLock")}
               </Text>
             </View>
-          </View>
-          <View style={styles.cardRight}>
-            <Text style={styles.cardAmount} testID={`sub-card-balance-${s.id}`}>
-              {fmtUsd(s.balance)}
-            </Text>
-            {s.target > 0n ? (
-              <Text style={styles.cardOf}>/ {fmtUsd(s.target)}</Text>
-            ) : (
-              <View style={[styles.status, locked && styles.statusLocked]}>
-                {locked ? <Icon name="lock" size={10} color={colors.accentAmber} /> : null}
-                <Text style={[styles.statusText, locked && styles.statusTextLocked]}>{t("subs.protected")}</Text>
-              </View>
-            )}
+            <View style={styles.badge}>
+              <Text style={[styles.badgeText, styles.badgeAmount]} testID={`sub-card-balance-${s.id}`}>
+                {t("subs.balanceApprox", { amount: fmtUsd(s.balance) })}
+              </Text>
+            </View>
           </View>
         </View>
-        {s.target > 0n ? (
-          <View style={styles.progress}>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressLabel}>{progress >= 100 ? t("subs.goalReached") : t("subs.progress")}</Text>
-              <Text style={[styles.progressValue, { color: tint }]}>
-                {Math.round(progress)}% · {t("subs.remaining", { amount: `$${fmtAmount(s.target > s.balance ? s.target - s.balance : 0n)}` })}
-              </Text>
+        <View style={styles.rowRight}>
+          {active ? (
+            <View style={styles.activeDot} testID={`sub-active-${s.id}`}>
+              <Icon name="check" size={12} color={colors.onBrandPrimary} strokeWidth={3} />
             </View>
-            <ProgressBar value={progress} colorsFrom={[colors[cat.gradient[0]] as string, colors[cat.gradient[1]] as string]} />
-          </View>
-        ) : (
-          <View style={styles.footerRow}>
-            <Text style={styles.footerText}>{t(`subs.c${s.category}`)}</Text>
-            <Text style={styles.footerValue}>{dateLabel(s.createdAt, dict)}</Text>
-          </View>
-        )}
+          ) : null}
+          <PressableScale testID={`sub-menu-${s.id}`} accessibilityLabel={t("subs.actionsTitle")} onPress={onMenu} style={styles.menuBtn} hitSlop={6}>
+            <Icon name="more" size={20} color={colors.textSoft} />
+          </PressableScale>
+        </View>
       </PressableScale>
     </Animated.View>
   );
@@ -81,9 +73,10 @@ export default function SubAccounts() {
   const styles = useStyles();
   const { colors } = useTheme();
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const tabSpace = useTabSpace();
-  const { open } = useOverlay();
-  const { setActiveAccount } = useApp();
+  const { open, setTarget } = useOverlay();
+  const { activeAccount, setActiveAccount } = useApp();
   const { view, refreshing, refetch } = useVaultView();
   const [cat, setCat] = useState<number | "all">("all");
   const subs = useMemo(() => view?.subs ?? [], [view]);
@@ -108,7 +101,7 @@ export default function SubAccounts() {
       <ScrollView
         stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: tabSpace }}
+        contentContainerStyle={{ paddingBottom: tabSpace + 80 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refetch()} tintColor={colors.brandPrimary} />}
       >
         <View style={styles.pad}>
@@ -152,6 +145,12 @@ export default function SubAccounts() {
           />
         </View>
         <View style={[styles.pad, styles.list]}>
+          <View style={styles.listHead}>
+            <Text style={styles.listTitle}>{t("subs.listTitle")}</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countText}>{shown.length}</Text>
+            </View>
+          </View>
           {shown.length === 0 ? (
             <View style={styles.empty} testID="subaccounts-empty">
               <Icon name="layers" size={30} color={colors.accentBlue} strokeWidth={1.6} />
@@ -160,20 +159,27 @@ export default function SubAccounts() {
             </View>
           ) : (
             shown.map((s, i) => (
-              <SubCard
+              <SubRow
                 key={s.id}
                 s={s}
                 index={i}
+                active={activeAccount === s.id}
                 onPress={() => {
                   setActiveAccount(s.id);
                   router.navigate("/(tabs)");
                 }}
+                onMenu={() => {
+                  setTarget(s.id);
+                  open("subActions");
+                }}
               />
             ))
           )}
-          <PrimaryButton testID="subaccounts-create-button" icon="plus" label={t("subs.create")} onPress={() => open("createSub")} style={styles.cta} />
         </View>
       </ScrollView>
+      <View pointerEvents="box-none" style={[styles.ctaBar, { bottom: tabBottom(insets.bottom) + TAB_BAR_HEIGHT + 12 }]}>
+        <PrimaryButton testID="subaccounts-create-button" icon="plus" label={t("subs.create")} onPress={() => open("createSub")} style={styles.cta} />
+      </View>
     </View>
   );
 }
@@ -195,29 +201,42 @@ const useStyles = makeStyles((c) => ({
   legendDot: { width: 8, height: 8, borderRadius: 4 },
   legendText: { color: c.muted, fontSize: 11 },
   sticky: { backgroundColor: c.stickyBar, width: "100%", maxWidth: 560, alignSelf: "center" },
-  list: { gap: 14 },
-  card: { padding: 16, borderRadius: 22, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border, borderTopColor: c.glassHighlight },
-  cardTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
-  cardLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 },
-  cardText: { flex: 1, minWidth: 0 },
-  cardName: { color: c.textStrong, fontSize: 15, fontWeight: "700" },
-  cardSub: { fontSize: 11, fontWeight: "500", marginTop: 3, opacity: 0.85 },
-  cardRight: { alignItems: "flex-end", gap: 3 },
-  cardAmount: { color: c.textStrong, fontSize: 15, fontFamily: fonts.display, fontVariant: ["tabular-nums"] },
-  cardOf: { color: c.muted, fontSize: 11 },
-  status: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 6, height: 20, borderRadius: 6, backgroundColor: c.emeraldSoft },
-  statusLocked: { backgroundColor: c.amberSoft },
-  statusText: { color: c.accentEmerald, fontSize: 10, fontWeight: "700" },
-  statusTextLocked: { color: c.accentAmber },
-  progress: { marginTop: 14, gap: 6 },
-  progressRow: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  progressLabel: { color: c.muted, fontSize: 10 },
-  progressValue: { fontSize: 10, fontWeight: "700" },
-  footerRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: c.divider },
-  footerText: { color: c.muted, fontSize: 11 },
-  footerValue: { color: c.textSoft, fontSize: 11, fontWeight: "500" },
+  list: { gap: 10 },
+  listHead: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 4, marginTop: 4, marginBottom: 2 },
+  listTitle: { color: c.textStrong, fontSize: 17, fontWeight: "700" },
+  countBadge: { minWidth: 24, paddingHorizontal: 8, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: c.brandTertiary },
+  countText: { color: c.accentBlue, fontSize: 12, fontWeight: "800", textAlign: "center" },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 76,
+    paddingVertical: 12,
+    paddingStart: 14,
+    paddingEnd: 6,
+    borderRadius: 20,
+    backgroundColor: c.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  rowActive: { borderColor: c.emeraldBorder },
+  rowIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  rowText: { flex: 1, minWidth: 0, gap: 6 },
+  rowName: { color: c.textStrong, fontSize: 16, fontWeight: "700" },
+  badges: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  badge: { flexDirection: "row", alignItems: "center", gap: 4, height: 22, paddingHorizontal: 8, borderRadius: 7, borderWidth: 1, borderColor: c.white15 },
+  badgeLocked: { borderColor: c.amberSoft, backgroundColor: c.amberSoft },
+  badgeFree: { borderColor: c.emeraldBorder },
+  badgeText: { color: c.textSoft, fontSize: 11, fontWeight: "600" },
+  badgeTextLocked: { color: c.accentAmber },
+  badgeTextFree: { color: c.accentEmerald },
+  badgeAmount: { color: c.textStrong, fontFamily: fonts.display },
+  rowRight: { flexDirection: "row", alignItems: "center", gap: 2 },
+  activeDot: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: c.accentEmerald },
+  menuBtn: { width: 40, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 14 },
   empty: { alignItems: "center", gap: 8, padding: 28, borderRadius: 18, backgroundColor: c.glass, borderWidth: 1, borderColor: c.border },
   emptyTitle: { color: c.textStrong, fontSize: 15, fontWeight: "700" },
   emptySub: { color: c.muted, fontSize: 13, textAlign: "center", lineHeight: 19 },
-  cta: { marginTop: 4 },
+  ctaBar: { position: "absolute", start: 0, end: 0, paddingHorizontal: 20, alignItems: "center" },
+  cta: { width: "100%", maxWidth: 520 },
 }));

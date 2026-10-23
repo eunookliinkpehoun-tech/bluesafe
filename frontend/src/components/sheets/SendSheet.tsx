@@ -1,7 +1,7 @@
 import * as Clipboard from "expo-clipboard";
 import { useEffect, useState } from "react";
 import { Linking, Text, View } from "react-native";
-import Animated, { ZoomIn } from "react-native-reanimated";
+import Animated, { Easing, ZoomIn } from "react-native-reanimated";
 import { getAddress, isAddress, type Address } from "viem";
 
 import { Icon } from "@/src/components/Icon";
@@ -58,7 +58,7 @@ export function SendSheet({ mode, onClose }: { mode: "transfer" | "withdraw"; on
     return (
       <Sheet title={title} onClose={onClose} testID={`${mode}-sheet`}>
         <View style={styles.success} testID={`${mode}-success`}>
-          <Animated.View entering={ZoomIn.springify().damping(12)} style={styles.successIcon}>
+          <Animated.View entering={ZoomIn.duration(260).easing(Easing.out(Easing.cubic))} style={styles.successIcon}>
             <Icon name="check" size={36} color={colors.accentEmerald} strokeWidth={3} />
           </Animated.View>
           <Text style={styles.successTitle}>{t("sheets.success")}</Text>

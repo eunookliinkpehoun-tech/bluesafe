@@ -2,12 +2,12 @@ import { router } from "expo-router";
 import { useEffect } from "react";
 import { Text, View } from "react-native";
 import Animated, {
+  Easing,
   FadeIn,
   FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,7 +30,7 @@ export default function Splash() {
   const glow = useSharedValue(0);
 
   useEffect(() => {
-    scale.value = withSpring(1, { damping: 11, stiffness: 120 });
+    scale.value = withTiming(1, { duration: 520, easing: Easing.out(Easing.cubic) });
     glow.value = withRepeat(withTiming(1, { duration: 1400 }), -1, true);
   }, [scale, glow]);
 

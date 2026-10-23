@@ -5,6 +5,7 @@ import { CreateSubSheet } from "./sheets/CreateSubSheet";
 import { DepositSheet } from "./sheets/DepositSheet";
 import { BackupSheet, NotificationsSheet, PeriodSheet, SignOutSheet, TeamHelpSheet } from "./sheets/MiscSheets";
 import { SendSheet } from "./sheets/SendSheet";
+import { SubActionsSheet, SubDeleteSheet } from "./sheets/SubActionsSheet";
 import { SubMoveSheet } from "./sheets/SubMoveSheet";
 
 /** Mounted after the tab navigator so menus, drawer and sheets sit above the nav bar. */
@@ -25,6 +26,8 @@ export function OverlayHost() {
       {sheet === "signOut" ? <SignOutSheet onClose={close} /> : null}
       {sheet === "teamHelp" ? <TeamHelpSheet onClose={close} /> : null}
       {sheet === "period" ? <PeriodSheet onClose={close} /> : null}
+      {sheet === "subActions" ? <SubActionsSheet onClose={close} /> : null}
+      {sheet === "subDelete" ? <SubDeleteSheet onClose={close} /> : null}
     </>
   );
 }

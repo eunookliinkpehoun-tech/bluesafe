@@ -11,7 +11,9 @@ export type SheetKind =
   | "backup"
   | "signOut"
   | "teamHelp"
-  | "period";
+  | "period"
+  | "subActions"
+  | "subDelete";
 
 export type Period = "all" | "month" | "week";
 
@@ -25,6 +27,9 @@ type Ctx = {
   setDrawerOpen: (v: boolean) => void;
   period: Period;
   setPeriod: (p: Period) => void;
+  /** Sub-account targeted by the actions / delete sheets. */
+  target: number | null;
+  setTarget: (id: number | null) => void;
 };
 
 const OverlayContext = createContext<Ctx | null>(null);
@@ -34,6 +39,7 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
   const [plusOpen, setPlusOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [period, setPeriod] = useState<Period>("all");
+  const [target, setTarget] = useState<number | null>(null);
 
   const open = useCallback((s: SheetKind) => {
     setPlusOpen(false);
@@ -43,8 +49,8 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
   const close = useCallback(() => setSheet(null), []);
 
   const value = useMemo(
-    () => ({ sheet, open, close, plusOpen, setPlusOpen, drawerOpen, setDrawerOpen, period, setPeriod }),
-    [sheet, open, close, plusOpen, drawerOpen, period],
+    () => ({ sheet, open, close, plusOpen, setPlusOpen, drawerOpen, setDrawerOpen, period, setPeriod, target, setTarget }),
+    [sheet, open, close, plusOpen, drawerOpen, period, target],
   );
   return <OverlayContext.Provider value={value}>{children}</OverlayContext.Provider>;
 }

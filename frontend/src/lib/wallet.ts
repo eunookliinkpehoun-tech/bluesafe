@@ -1,13 +1,15 @@
 // Passphrase (BIP-39) wallet: 12 words -> BIP-44 Ethereum key (m/44'/60'/0'/0/0), same as Trust Wallet.
 import { HDKey } from "@scure/bip32";
-import { mnemonicToSeed, validateMnemonic } from "@scure/bip39";
+import { entropyToMnemonic, mnemonicToSeed, validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
+import { getRandomBytes, getRandomValues } from "expo-crypto";
 import { bytesToHex, keccak256, toHex, type Address, type Hex } from "viem";
-import { english, generateMnemonic, privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 
 export const normalizePhrase = (phrase: string) => phrase.trim().toLowerCase().split(/\s+/).filter(Boolean).join(" ");
 
-export const createPhrase = () => generateMnemonic(english);
+// 128 bits of entropy from the OS secure RNG (expo-crypto works on Android, iOS and web).
+export const createPhrase = () => entropyToMnemonic(getRandomBytes(16), wordlist);
 
 export const isValidPhrase = (phrase: string) => {
   const words = normalizePhrase(phrase).split(" ");
@@ -27,8 +29,7 @@ export const hashPin = (pin: string, address: string) => keccak256(toHex(`tireli
 
 export const randomWords = (count: number, exclude: string[]) => {
   const out: string[] = [];
-  const bytes = new Uint32Array(count * 3);
-  crypto.getRandomValues(bytes);
+  const bytes = getRandomValues(new Uint32Array(count * 3));
   for (let i = 0; i < bytes.length && out.length < count; i++) {
     const w = wordlist[bytes[i] % wordlist.length];
     if (!exclude.includes(w) && !out.includes(w)) out.push(w);

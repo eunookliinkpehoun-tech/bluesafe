@@ -97,6 +97,7 @@ const dark = {
   glassPressed: "rgba(30, 42, 69, 0.85)",
   navBar: "rgba(12, 18, 34, 0.92)",
   sheet: "rgba(9, 13, 26, 0.98)",
+  sheetClear: "rgba(9, 13, 26, 0)",
   drawer: "rgba(6, 10, 22, 0.98)",
   overlay: "rgba(2, 6, 23, 0.62)",
   overlayLight: "rgba(2, 6, 23, 0.35)",

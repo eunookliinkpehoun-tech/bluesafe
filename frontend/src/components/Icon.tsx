@@ -56,6 +56,9 @@ const ICONS = {
   clipboard: { els: [["p", "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"], ["r", 8, 2, 8, 4, 1]] },
   backspace: { els: [["p", "M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"], ["p", "M18 9l-6 6M12 9l6 6"]] },
   sparkles: { els: [["p", "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"], ["p", "M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"]] },
+  calendar: { els: [["r", 3, 4, 18, 18, 2], ["p", "M16 2v4M8 2v4M3 10h18"]] },
+  more: { els: [["c", 12, 5, 1], ["c", 12, 12, 1], ["c", 12, 19, 1]] },
+  trash: { els: [["p", "M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"], ["p", "M10 11v6M14 11v6"]] },
 } satisfies Record<string, { fill?: boolean; els: El[] }>;
 
 export type IconName = keyof typeof ICONS;
