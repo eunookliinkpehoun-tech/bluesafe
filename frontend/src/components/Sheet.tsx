@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { KeyboardStickyView } from "react-native-keyboard-controller";
+import { Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
+import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import Animated, { Easing, FadeIn, FadeOut, SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,6 +16,7 @@ export function Sheet({
   children,
   testID,
   scrollable = true,
+  size = "auto",
 }: {
   title: string;
   onClose: () => void;
@@ -23,22 +24,26 @@ export function Sheet({
   testID: string;
   /** Off for sheets that host their own scrolling content (wheel pickers). */
   scrollable?: boolean;
+  /** `half` is 50% of the screen, `tall` is 86%. */
+  size?: "auto" | "half" | "tall";
 }) {
   const styles = useStyles();
   const { colors } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const pinned = size === "half" ? 0.5 : size === "tall" ? 0.86 : 0;
   return (
     <View style={styles.host}>
-      <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(180)} style={styles.backdrop}>
+      <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(100)} style={styles.backdrop}>
         <Pressable testID={`${testID}-backdrop`} style={styles.fill} onPress={onClose} />
       </Animated.View>
-      <KeyboardStickyView style={styles.sticky} offset={{ opened: insets.bottom }}>
+      <KeyboardStickyView style={[styles.sticky, pinned > 0 && { maxHeight: size === "tall" ? "86%" : "50%" }]} offset={{ opened: insets.bottom }}>
         <Animated.View
-          entering={SlideInDown.duration(280).easing(Easing.out(Easing.cubic))}
-          exiting={SlideOutDown.duration(200).easing(Easing.in(Easing.cubic))}
+          entering={SlideInDown.duration(200).easing(Easing.out(Easing.cubic))}
+          exiting={SlideOutDown.duration(150).easing(Easing.in(Easing.cubic))}
           testID={testID}
-          style={[styles.panel, { paddingBottom: insets.bottom + 20 }]}
+          style={[styles.panel, pinned > 0 && { height: Math.round(windowHeight * pinned) }, { paddingBottom: insets.bottom + 20 }]}
         >
           <View style={styles.handle} />
           <View style={styles.header}>
@@ -50,15 +55,17 @@ export function Sheet({
             </PressableScale>
           </View>
           {scrollable ? (
-            <ScrollView
+            <KeyboardAwareScrollView
+              bottomOffset={24}
+              keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
               bounces={false}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              style={styles.scroll}
+              style={[styles.scroll, pinned > 0 && styles.scrollHalf]}
               contentContainerStyle={styles.body}
             >
               {children}
-            </ScrollView>
+            </KeyboardAwareScrollView>
           ) : (
             <View style={styles.body}>{children}</View>
           )}
@@ -86,9 +93,9 @@ const useStyles = makeStyles((c) => ({
     borderTopColor: c.glassHighlight,
     paddingHorizontal: 20,
     paddingTop: 10,
-    shadowColor: c.canvas,
-    shadowOpacity: 0.7,
-    shadowRadius: 30,
+    shadowColor: "#000000",
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
     shadowOffset: { width: 0, height: -10 },
     elevation: 24,
   },
@@ -106,5 +113,6 @@ const useStyles = makeStyles((c) => ({
     borderColor: c.border,
   },
   scroll: { flexShrink: 1 },
+  scrollHalf: { flex: 1 },
   body: { gap: 18, paddingBottom: 4 },
 }));
