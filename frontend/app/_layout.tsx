@@ -3,6 +3,7 @@ import "@/src/polyfills";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { router, Stack, useRootNavigationState, useSegments } from "expo-router";
+import * as Notifications from "expo-notifications";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -11,10 +12,21 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { ErrorBoundary } from "@/src/components/error-boundary";
 import { ToastProvider } from "@/src/components/Toast";
+import { useRelayStatusQuery, useVaultView } from "@/src/hooks/useVault";
 import { I18nProvider, useI18n } from "@/src/i18n";
+import { ensurePushRegistered } from "@/src/lib/push";
 import { queryClient } from "@/src/query-client";
 import { AppProvider, useApp } from "@/src/state/app";
 import { dirStyle, fontAssets, makeStyles, useTheme, webDir } from "@/src/theme";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 // Disable logbox errors etc so that users can see the app
 // and agent works as expected.
@@ -41,8 +53,19 @@ function useAuthGuard() {
 function Shell() {
   const styles = useStyles();
   const { colors } = useTheme();
-  const { isRTL } = useI18n();
+  const { isRTL, lang } = useI18n();
+  const { view } = useVaultView();
+  const segments = useSegments();
+  useRelayStatusQuery();
   useAuthGuard();
+  useEffect(() => {
+    const first = segments[0] as string | undefined;
+    if (first && first !== "index") SplashScreen.hideAsync().catch(() => undefined);
+  }, [segments]);
+  useEffect(() => {
+    if (!view?.vault) return;
+    ensurePushRegistered(view.vault, lang).catch(() => undefined);
+  }, [view?.vault, lang]);
   return (
     <View style={[styles.root, dirStyle(isRTL ? "rtl" : "ltr")]} {...webDir(isRTL ? "rtl" : "ltr")}>
       <StatusBar style="light" />
@@ -53,9 +76,6 @@ function Shell() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fontAssets);
-  useEffect(() => {
-    if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => undefined);
-  }, [fontsLoaded, fontError]);
   if (!fontsLoaded && !fontError) return null;
 
   // One app level ErrorBoundary; a render crash shows a reload screen

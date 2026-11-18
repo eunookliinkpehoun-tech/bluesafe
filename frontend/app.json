@@ -2,7 +2,7 @@
   "expo": {
     "name": "BlueSafe",
     "slug": "frontend",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bluesafe",
@@ -20,7 +20,7 @@
         "backgroundColor": "#030611"
       },
       "package": "com.bluesafe.app",
-      "versionCode": 16,
+      "versionCode": 17,
       "intentFilters": [
         {
           "action": "VIEW",
